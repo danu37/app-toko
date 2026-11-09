@@ -1,59 +1,52 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛒 Sistem Informasi Penjualan Toko (POS)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web Sistem Informasi Penjualan Toko (*Point of Sales*) berskala menengah yang dikembangkan untuk mengelola transaksi, pelanggan, dan inventaris. Proyek ini dibangun menggunakan **Laravel** dipadukan dengan **Vue.js** secara *Single Page Application* (SPA), serta menitikberatkan pada optimasi performa dan keamanan data melalui implementasi pemrograman basis data lanjutan (*Advanced SQL*).
 
-## About Laravel
+## 🛠️ Teknologi yang Digunakan
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Backend:** Framework Laravel (PHP)
+* **Frontend:** Vue.js, Inertia.js, Tailwind CSS
+* **Database:** MariaDB / MySQL (XAMPP)
+* **Arsitektur:** MVC (Model-View-Controller) dengan pemrosesan logika bisnis hibrida di sisi *Database Engine*.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## ✨ Fitur Utama Aplikasi
 
-## Learning Laravel
+1. **Manajemen Master Data (CRUD Terpusat)**
+   * Pengelolaan data **Kategori** dan **Produk** (`tbl_kategori`, `tbl_produk`).
+   * Manajemen data **Pelanggan** (`tbl_pelanggan`).
+2. **Sistem Pemrosesan Transaksi**
+   * Antarmuka kasir/transaksi yang reaktif dengan Vue.js.
+   * Proses perekaman transaksi utama (`tbl_transaksi`) dan rincian item (`tbl_detail_transaksi`) secara bersamaan.
+3. **Analitik & Laporan Lanjutan**
+   * Laporan riwayat transaksi pelanggan secara mendetail.
+   * Analisis total pembelanjaan, peringkat transaksi tertinggi, dan identifikasi pelanggan pasif.
+4. **Keamanan & Konsistensi Data**
+   * Perlindungan dari kegagalan sistem saat proses simpan data menggunakan *Transaction Control Language* (TCL: `COMMIT` & `ROLLBACK`).
+   * Sistem riwayat aktivitas otomatis (Audit Trail) tanpa membebani logika *Controller* aplikasi.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🗄️ Implementasi Database Lanjutan (Advanced SQL)
 
-## Laravel Sponsors
+Berbeda dengan aplikasi CRUD biasa yang sepenuhnya bergantung pada ORM (Eloquent), sistem ini mendelegasikan beberapa tugas berat dan repetitif langsung ke *Database Engine* untuk performa maksimal:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* **Database Views:** Digunakan untuk memproduksi Laporan Penjualan terpadu. Aplikasi Laravel cukup memanggil View ini layaknya tabel biasa tanpa perlu melakukan instruksi *Multiple JOIN* berulang kali.
+* **Subqueries & JOIN:** Diimplementasikan untuk mengolah data kompleks, seperti mencari pelanggan yang belum pernah bertransaksi atau transaksi dengan nilai di atas rata-rata.
+* **Stored Procedures:** Digunakan untuk merangkum proses *insert* transaksi berskala besar. *Controller* Laravel cukup memanggil procedure `CALL LaporanTransaksi(id)` sehingga proses jauh lebih ringkas.
+* **Stored Functions:** Mengambil alih beban komputasi seperti `HitungTotal()`, `HitungDiskon()`, dan `HitungPajak()` secara mandiri di dalam database.
+* **Database Triggers:** Bekerja di latar belakang untuk melakukan dua hal esensial:
+  1. **Validasi (*Before Insert*):** Menolak secara otomatis jika ada transaksi bernilai negatif masuk ke sistem.
+  2. **Audit Log (*After Insert/Update*):** Mencatat otomatis setiap perubahan nama pelanggan atau transaksi baru ke dalam tabel `tbl_log` tanpa perlu ditulis melalui Laravel.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## ⚙️ Cara Instalasi & Menjalankan Proyek
 
-## Contributing
+Pastikan Anda sudah menginstal PHP, Composer, Node.js, dan XAMPP (MariaDB/MySQL).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Clone Repositori**
+   ```bash
+   git clone [https://github.com/username/app-toko.git](https://github.com/username/app-toko.git)
+   cd app-toko
