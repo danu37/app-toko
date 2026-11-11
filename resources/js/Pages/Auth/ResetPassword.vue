@@ -1,10 +1,8 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import BaseButton from '@/Components/UI/BaseButton.vue';
+import BaseInput from '@/Components/UI/BaseInput.vue';
 
 const props = defineProps({
     email: {
@@ -33,68 +31,51 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Reset Kata Sandi" />
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+        <div class="mb-5">
+            <h1 class="text-lg font-semibold text-neutral-900">Atur Ulang Kata Sandi</h1>
+            <p class="mt-1 text-sm text-neutral-500">
+                Masukkan kata sandi baru untuk akun Anda.
+            </p>
+        </div>
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+        <form class="space-y-4" @submit.prevent="submit">
+            <BaseInput
+                id="email"
+                v-model="form.email"
+                label="Email"
+                type="email"
+                required
+                autofocus
+                autocomplete="username"
+                :error="form.errors.email"
+            />
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+            <BaseInput
+                id="password"
+                v-model="form.password"
+                label="Kata Sandi Baru"
+                type="password"
+                required
+                autocomplete="new-password"
+                :error="form.errors.password"
+            />
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+            <BaseInput
+                id="password_confirmation"
+                v-model="form.password_confirmation"
+                label="Konfirmasi Kata Sandi"
+                type="password"
+                required
+                autocomplete="new-password"
+                :error="form.errors.password_confirmation"
+            />
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
-                    id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    class="mt-2"
-                    :message="form.errors.password_confirmation"
-                />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Reset Password
-                </PrimaryButton>
+            <div class="flex justify-end pt-2">
+                <BaseButton type="submit" class="w-full" :loading="form.processing">
+                    Simpan Kata Sandi Baru
+                </BaseButton>
             </div>
         </form>
     </GuestLayout>

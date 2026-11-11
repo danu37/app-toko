@@ -1,10 +1,8 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import BaseButton from '@/Components/UI/BaseButton.vue';
+import BaseInput from '@/Components/UI/BaseInput.vue';
 
 const form = useForm({
     password: '',
@@ -19,36 +17,31 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Confirm Password" />
+        <Head title="Konfirmasi Kata Sandi" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            This is a secure area of the application. Please confirm your
-            password before continuing.
+        <div class="mb-5">
+            <h1 class="text-lg font-semibold text-neutral-900">Konfirmasi Keamanan</h1>
+            <p class="mt-1 text-sm text-neutral-500">
+                Area ini dilindungi. Masukkan kata sandi Anda sebelum melanjutkan.
+            </p>
         </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="password" value="Password" />
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                    autofocus
-                />
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
+        <form class="space-y-4" @submit.prevent="submit">
+            <BaseInput
+                id="password"
+                v-model="form.password"
+                label="Kata Sandi"
+                type="password"
+                required
+                autofocus
+                autocomplete="current-password"
+                :error="form.errors.password"
+            />
 
-            <div class="mt-4 flex justify-end">
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Confirm
-                </PrimaryButton>
+            <div class="flex justify-end pt-2">
+                <BaseButton type="submit" :loading="form.processing">
+                    Konfirmasi
+                </BaseButton>
             </div>
         </form>
     </GuestLayout>

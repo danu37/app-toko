@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route($this->redirectRouteFor($request->user()), absolute: false));
+    }
+
+    private function redirectRouteFor(?User $user): string
+    {
+        return match ($user?->role) {
+            User::ROLE_ADMIN => 'dashboard',
+            User::ROLE_KASIR => 'dashboard',
+            default => 'home',
+        };
     }
 
     /**
