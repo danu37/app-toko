@@ -5,6 +5,7 @@ import AppSidebar from '@/Layouts/Components/AppSidebar.vue';
 import AppHeader from '@/Layouts/Components/AppHeader.vue';
 import AppFooter from '@/Layouts/Components/AppFooter.vue';
 import ToastNotification from '@/Components/Feedback/ToastNotification.vue';
+import { usePageEntrance } from '@/Composables/usePageEntrance';
 
 defineProps({
     title: {
@@ -13,6 +14,7 @@ defineProps({
     },
 });
 
+const { animateChrome } = usePageEntrance('internal');
 const mobileOpen = ref(false);
 const navigating = ref(false);
 
@@ -37,10 +39,10 @@ onUnmounted(() => {
             aria-hidden="true"
         />
 
-        <AppSidebar :mobile-open="mobileOpen" @close="mobileOpen = false" />
+        <AppSidebar :mobile-open="mobileOpen" :animate-chrome="animateChrome" @close="mobileOpen = false" />
 
         <div class="flex min-w-0 flex-1 flex-col">
-            <AppHeader :title="title" @toggle-sidebar="mobileOpen = !mobileOpen">
+            <AppHeader :title="title" :animate-chrome="animateChrome" @toggle-sidebar="mobileOpen = !mobileOpen">
                 <template v-if="$slots.header" #title>
                     <slot name="header" />
                 </template>
@@ -49,7 +51,9 @@ onUnmounted(() => {
             <main class="flex-1 px-4 py-6 print:p-0 sm:px-6 lg:px-8">
                 <div class="mx-auto max-w-7xl print:max-w-none">
                     <ToastNotification />
-                    <slot />
+                    <div class="tk-page-stage">
+                        <slot />
+                    </div>
                 </div>
             </main>
 

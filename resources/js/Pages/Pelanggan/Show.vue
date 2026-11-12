@@ -111,7 +111,10 @@ const executeDelete = () => {
             </div>
 
             <!-- Customer Summary Cards -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 55ms"
+            >
                 <StatCard
                     label="Total Transaksi"
                     :value="customerSummary.total_transaksi ?? 0"

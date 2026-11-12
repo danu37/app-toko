@@ -2,7 +2,193 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --tk-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        --tk-enter-duration: 460ms;
+        --tk-enter-distance: 14px;
+        --tk-enter-scale: 0.985;
+    }
+}
+
+@keyframes tk-page-enter {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, var(--tk-enter-distance, 14px), 0)
+            scale(var(--tk-enter-scale, 0.985));
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes tk-chrome-enter {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, -6px, 0) scale(0.996);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@layer utilities {
+    /* Animasi pembuka utama (300-600ms, GPU fade + slide-up + subtle scale) */
+    .animate-enter {
+        --tk-enter-distance: 14px;
+        --tk-enter-scale: 0.985;
+        animation: tk-page-enter var(--enter-duration, 460ms) var(--tk-ease-out)
+            var(--enter-delay, 0ms) backwards;
+    }
+
+    .animate-enter-soft {
+        --tk-enter-distance: 10px;
+        --tk-enter-scale: 0.992;
+        animation: tk-page-enter var(--enter-duration, 380ms) var(--tk-ease-out)
+            var(--enter-delay, 0ms) backwards;
+    }
+
+    .animate-enter-hero {
+        --tk-enter-distance: 16px;
+        --tk-enter-scale: 0.98;
+        animation: tk-page-enter var(--enter-duration, 540ms) var(--tk-ease-out)
+            var(--enter-delay, 0ms) backwards;
+    }
+
+    .animate-enter-chrome {
+        animation: tk-chrome-enter var(--enter-duration, 360ms) var(--tk-ease-out)
+            var(--enter-delay, 0ms) backwards;
+    }
+
+    /* Stagger bertahap untuk daftar elemen vertikal & hero stack */
+    .enter-stagger > * {
+        --tk-enter-distance: 14px;
+        --tk-enter-scale: 0.985;
+        animation: tk-page-enter var(--enter-duration, 460ms) var(--tk-ease-out)
+            calc(var(--stagger-base, 0ms) + var(--tk-stagger-offset, 0ms)) backwards;
+    }
+
+    .enter-stagger > *:nth-child(1) {
+        --tk-stagger-offset: 0ms;
+    }
+    .enter-stagger > *:nth-child(2) {
+        --tk-stagger-offset: 55ms;
+    }
+    .enter-stagger > *:nth-child(3) {
+        --tk-stagger-offset: 110ms;
+    }
+    .enter-stagger > *:nth-child(4) {
+        --tk-stagger-offset: 165ms;
+    }
+    .enter-stagger > *:nth-child(5) {
+        --tk-stagger-offset: 220ms;
+    }
+    .enter-stagger > *:nth-child(6) {
+        --tk-stagger-offset: 270ms;
+    }
+    .enter-stagger > *:nth-child(7) {
+        --tk-stagger-offset: 315ms;
+    }
+    .enter-stagger > *:nth-child(n + 8) {
+        --tk-stagger-offset: 350ms;
+    }
+
+    /* Stagger cepat untuk grid KPI & kartu katalog produk/kategori */
+    .enter-stagger-grid > * {
+        --tk-enter-distance: 12px;
+        --tk-enter-scale: 0.982;
+        animation: tk-page-enter var(--enter-duration, 440ms) var(--tk-ease-out)
+            calc(var(--stagger-base, 40ms) + var(--tk-grid-offset, 0ms)) backwards;
+    }
+
+    .enter-stagger-grid > *:nth-child(1) {
+        --tk-grid-offset: 0ms;
+    }
+    .enter-stagger-grid > *:nth-child(2) {
+        --tk-grid-offset: 45ms;
+    }
+    .enter-stagger-grid > *:nth-child(3) {
+        --tk-grid-offset: 90ms;
+    }
+    .enter-stagger-grid > *:nth-child(4) {
+        --tk-grid-offset: 135ms;
+    }
+    .enter-stagger-grid > *:nth-child(5) {
+        --tk-grid-offset: 175ms;
+    }
+    .enter-stagger-grid > *:nth-child(6) {
+        --tk-grid-offset: 215ms;
+    }
+    .enter-stagger-grid > *:nth-child(7) {
+        --tk-grid-offset: 250ms;
+    }
+    .enter-stagger-grid > *:nth-child(n + 8) {
+        --tk-grid-offset: 280ms;
+    }
+
+    /* Konsistensi otomatis untuk seluruh halaman internal Admin & Kasir */
+    .tk-page-stage > :is(.rounded-xl, .rounded-2xl, form) {
+        --tk-enter-distance: 12px;
+        --tk-enter-scale: 0.988;
+        animation: tk-page-enter 440ms var(--tk-ease-out) 0ms backwards;
+    }
+
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > :not(.enter-stagger-grid) {
+        --tk-enter-distance: 12px;
+        --tk-enter-scale: 0.988;
+        animation: tk-page-enter 440ms var(--tk-ease-out) var(--tk-stage-offset, 0ms) backwards;
+    }
+
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(1) {
+        --tk-stage-offset: 0ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(2) {
+        --tk-stage-offset: 55ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(3) {
+        --tk-stage-offset: 110ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(4) {
+        --tk-stage-offset: 165ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(5) {
+        --tk-stage-offset: 220ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(6) {
+        --tk-stage-offset: 270ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(7) {
+        --tk-stage-offset: 315ms;
+    }
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > *:nth-child(n + 8) {
+        --tk-stage-offset: 350ms;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-enter,
+    .animate-enter-soft,
+    .animate-enter-hero,
+    .animate-enter-chrome,
+    .enter-stagger > *,
+    .enter-stagger-grid > *,
+    .tk-page-stage > :is(.rounded-xl, .rounded-2xl, form),
+    .tk-page-stage > :is(.space-y-5, .space-y-6, .grid) > * {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 @media print {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+
     html,
     body {
         margin: 0 !important;

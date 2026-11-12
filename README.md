@@ -1,88 +1,189 @@
-# TokoKita — Aplikasi Toko & Point of Sales (POS)
+<div align="center">
 
-Aplikasi web manajemen toko, storefront katalog publik, sistem kasir (*Point of Sales*), cetak nota thermal (`40 mm`, `58 mm`, `80 mm`), serta laporan penjualan dan manajemen peran berbasis **Laravel 12**, **Vue 3** (`<script setup>`), **Inertia.js 2**, **Tailwind CSS**, dan **MariaDB / MySQL**.
+# TokoKita — Aplikasi Toko, Storefront & Point of Sales (POS)
 
----
+**Sistem manajemen retail modern berbasis web dengan storefront katalog minimalis, kasir POS real-time, cetak nota thermal (`40 mm`, `58 mm`, `80 mm`), auto file compression, serta otorisasi multi-role ketat.**
 
-## Ringkasan Fitur Utama
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://www.php.net/)
+[![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com/)
+[![Vue.js](https://img.shields.io/badge/Vue-3%20Composition%20API-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![Inertia.js](https://img.shields.io/badge/Inertia.js-2.0-9553E9?style=flat-square&logo=inertia&logoColor=white)](https://inertiajs.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![MariaDB](https://img.shields.io/badge/MariaDB%20%2F%20MySQL-db--toko-003545?style=flat-square&logo=mariadb&logoColor=white)](https://mariadb.org/)
+[![PHPUnit](https://img.shields.io/badge/Tests-73%20Passed-10B981?style=flat-square&logo=checkmarx&logoColor=white)](#pengujian-dan-verifikasi)
 
-1. **Storefront Publik Minimalis (`/`, `/shop`, `/shop/{slug}`)**
-   - Halaman beranda bergaya editorial dengan hero promosi, daftar kategori unggulan (*Shop by Categories*), produk terlaris (*Our Bestsellers*), banner promo, pencarian cepat, dan detail produk beserta informasi ketersediaan stok.
-2. **Autentikasi & Otorisasi Berbasis Role (`admin` & `kasir`)**
-   - Pemisahan hak akses berlapis di backend melalui middleware `EnsureUserHasRole`, Laravel Policy & Gate, serta otorisasi Form Request.
-   - Registrasi mandiri publik dinonaktifkan; pembuatan akun dan penetapan role hanya dapat dilakukan oleh Administrator.
-   - Halaman galat terstruktur ([`resources/js/Pages/Error.vue`](resources/js/Pages/Error.vue)) untuk status `403`, `404`, `500`, dan `503`, serta penanganan kedaluwarsa CSRF (`419`).
-3. **Dashboard Admin & Dashboard Operasional Kasir**
-   - **Admin**: Ringkasan total produk, kategori, pelanggan, transaksi, pendapatan, grafik tren penjualan harian/bulanan, produk terlaris, ringkasan stok menipis, dan transaksi terbaru.
-   - **Kasir**: Ringkasan transaksi hari ini, pelanggan dilayani hari ini, omzet harian, serta pintasan cepat menuju transaksi baru, tambah produk, dan tambah pelanggan.
-4. **Manajemen Master Data (`Produk`, `Kategori`, `Pelanggan`, `Cabang`, `Pengguna`)**
-   - **Produk**: Pencarian, filter kategori/status, detail, soft delete aman bagi riwayat transaksi, serta fitur **Auto File Compression (maksimal 2 MB)** pada form Produk dan Kategori — file `<= 2 MB` disimpan apa adanya tanpa kompresi ulang, sedangkan gambar `> 2 MB` (JPG/JPEG, PNG, WEBP) dikompres otomatis secara bertahap (kualitas lalu resolusi proporsional menjaga rasio aspek, termasuk penanganan transparansi PNG) beserta tampilan ukuran *Original*, *Compressed*, *Saved (%)*, status, indikator loading, pratinjau, dan validasi ulang backend via `gd`/`exif`.
-   - **Pelanggan**: Pencarian, filter kota, riwayat transaksi pelanggan, dan proteksi duplikasi nomor HP di backend.
-   - **Kategori, Cabang, & Pengguna**: Pengelolaan master kategori/cabang serta CRUD akun pengguna dan perubahan role khusus Admin.
-5. **Sistem Transaksi POS (`/transaksi/create`)**
-   - Pemilihan pelanggan dan cabang, pencarian/klik kartu produk cepat, pengaturan qty dengan batas stok real-time, pemilihan metode pembayaran (`tunai`, `qris`, `transfer`, `debit`), perhitungan otomatis kembalian/kurang bayar, serta pemrosesan atomik `DB::transaction` dengan penguncian stok `lockForUpdate()`.
-   - Harga satuan, subtotal, total akhir, dan kembalian **dihitung ulang secara otoritatif di server**; nominal dari browser tidak pernah dipercaya langsung.
-6. **Cetak Nota Thermal (`/transaksi/{id}/nota`)**
-   - Mendukung ukuran kertas **58 mm (Standar)**, **80 mm (Lebar)**, dan opsi efektif **40 mm (Mini)** dengan `@page` dinamis dan `@media print` yang menyembunyikan seluruh navigasi/toolbar aplikasi.
-   - Layout monospasi anti-potong (*wrap* aman untuk nama produk/pelanggan/kasir yang panjang).
-7. **Laporan & Rekap Penjualan (`/laporan`, `/laporan/*`, `/laporan/export`)**
-   - Laporan ringkasan penjualan, rekap harian, rekap metode pembayaran, rekap per cabang, rekap per kasir, produk terlaris, performa belanja pelanggan, filter rentang tanggal/cabang/pelanggan/kasir, dan ekspor **CSV** yang aman dari formula injection.
+[Fitur Utama](#fitur-utama) &bull;
+[Arsitektur](#arsitektur-sistem) &bull;
+[Hak Akses](#role-dan-hak-akses) &bull;
+[Instalasi](#instalasi-dan-konfigurasi) &bull;
+[Panduan POS](#panduan-transaksi-pos) &bull;
+[Printer Thermal](#konfigurasi-printer-thermal) &bull;
+[Pengujian](#pengujian-dan-verifikasi)
+
+<br />
+
+<img src="public/images/store/hero-online-shopping.jpg" alt="TokoKita — Storefront & Retail POS" width="760" />
+
+</div>
 
 ---
 
-## Arsitektur & Teknologi
+## Ringkasan Proyek
 
-| Lapisan | Teknologi |
+**TokoKita** menggabungkan etalase toko publik bergaya editorial yang bersih dengan panel operasional internal berkecepatan tinggi untuk **Administrator** dan **Kasir**. Aplikasi dibangun di atas fondasi skema `db-toko` dengan migration non-destruktif sehingga data historis, *view*, *stored routine*, dan *trigger* legacy tetap terjaga aman.
+
+> [!IMPORTANT]
+> Seluruh pembatasan hak akses **Admin vs Kasir** ditegakkan penuh di sisi server melalui Middleware (`EnsureUserHasRole`), Laravel Policy, Gate, Form Request, dan perhitungan transaksi otoritatif—bukan sekadar menyembunyikan tombol pada antarmuka Vue.
+
+---
+
+## Fitur Utama
+
+### 1. Storefront Publik Minimalis (`/`, `/shop`, `/shop/{slug}`)
+- **Beranda Editorial**: Hero promosi ([`public/images/store/hero-online-shopping.jpg`](public/images/store/hero-online-shopping.jpg)), daftar kategori unggulan (*Shop by Categories*), produk terlaris (*Our Bestsellers*), banner promo ([`public/images/store/promo-editorial.webp`](public/images/store/promo-editorial.webp)), serta navigasi desktop & mobile yang responsif.
+- **Katalog & Detail Produk**: Pencarian real-time, filter kategori, pengurutan harga, status stok, dan rekomendasi produk terkait (hanya menampilkan item aktif).
+
+### 2. Dashboard Khusus Per Role (`/dashboard`)
+- **Dashboard Administrator**: Total produk, kategori, pelanggan, transaksi, total pendapatan riil, grafik tren harian/bulanan, produk terlaris, ringkasan stok kritis/menipis, dan 5 transaksi terbaru.
+- **Dashboard Operasional Kasir**: Ringkasan transaksi hari ini, jumlah pelanggan dilayani, transaksi yang diproses kasir terkait, omzet harian sesuai izin `view-daily-sales`, serta pintasan cepat POS, tambah produk, dan tambah pelanggan.
+
+### 3. Sistem Transaksi POS Aman (`/transaksi/create`)
+- **Antarmuka Cepat Kasir**: Pencarian nama/SKU (mendukung `Enter` untuk SKU eksak), filter kategori, keranjang belanja dengan batas stok real-time, pemilihan metode bayar (`Tunai`, `QRIS`, `Transfer`, `Debit`), tombol cepat nominal tunai, serta kalkulasi kembalian / kurang bayar.
+- **Integritas Finansial & Stok Backend**:
+  - Diproses atomik dalam `DB::transaction` menggunakan penguncian baris `lockForUpdate()`.
+  - Harga satuan, subtotal, total akhir, dan kembalian **dihitung ulang dari database di server** (`TransaksiService`); manipulasi harga/total dari browser diabaikan atau ditolak.
+  - Menyimpan snapshot **nama kasir (`nama_kasir`)** serta **nama & harga produk** sehingga nota lama tetap konsisten walau harga produk berubah atau akun pengguna dihapus.
+
+### 4. Cetak Nota Thermal Multi-Ukuran (`/transaksi/{id}/nota`)
+- Mendukung pilihan lebar roll **40 mm (Mini)**, **58 mm (Standar)**, dan **80 mm (Lebar)** lewat `@page` dinamis dan `@media print`.
+- Menyembunyikan seluruh sidebar, header, dan tombol toolbar saat dicetak sehingga kertas thermal tidak terbuang.
+- Menampilkan **No Nota**, **Tanggal**, **Kasir** (dari snapshot transaksi atau operator aktif sebagai fallback transaksi historis), **Pelanggan**, rincian item dengan *word-wrapping* rapi, total akhir, pembayaran, dan kembalian.
+
+### 5. Auto File Compression (Maksimal 2 MB)
+- Terintegrasi pada form **Produk** dan **Kategori** melalui [`resources/js/Utils/imageCompression.js`](resources/js/Utils/imageCompression.js) dan [`app/Services/ImageCompressionService.php`](app/Services/ImageCompressionService.php).
+- **Otomatis & Cerdas**:
+  - File `<= 2 MB` disimpan langsung tanpa kompresi ulang dan mempertahankan format aslinya.
+  - Gambar `> 2 MB` (`JPG`/`JPEG`, `PNG`, `WEBP`) dikompres otomatis secara bertahap (penyesuaian kualitas lalu penurunan resolusi proporsional menjaga aspek rasio & transparansi PNG) hingga `<= 2 MB`.
+  - UI menampilkan ukuran *Before*, *After*, persentase penghematan (*Saved %*), status proses, dan pratinjau langsung, dilengkapi validasi ulang MIME & ekstensi di server via ekstensi `gd`/`exif`.
+
+### 6. Manajemen Master Data, Laporan & Export CSV
+- **Master Data**: Produk (dengan *soft delete* aman bagi riwayat transaksi), Kategori, Pelanggan (validasi anti-duplikasi nomor HP), Cabang, dan Pengguna + Pengaturan Role.
+- **Laporan & Rekap (`/laporan`)**: Penjualan, rekap harian, metode pembayaran, performa cabang & kasir, produk terlaris, performa pelanggan, filter rentang tanggal/kasir/pelanggan/cabang, tampilan cetak laporan, serta **Export CSV** ber-BOM UTF-8 yang aman dari *formula injection*.
+
+---
+
+## Arsitektur Sistem
+
+```mermaid
+flowchart LR
+    Guest["Pengunjung Publik"] -->|"Storefront & Katalog"| StoreCtrl["StoreController"]
+    Staff["Admin / Kasir (Auth)"] -->|"Middleware role & Policy"| Internal["Controllers (POS, Master, Laporan)"]
+    Internal --> SvcTx["TransaksiService (DB::transaction + lockForUpdate)"]
+    Internal --> SvcImg["ImageCompressionService (Max 2 MB + MIME Check)"]
+    Internal --> SvcLap["LaporanService (Agregasi + CSV Aman)"]
+    StoreCtrl --> DB[("MariaDB / MySQL - db-toko")]
+    SvcTx --> DB
+    SvcLap --> DB
+```
+
+| Lapisan | Teknologi & Paket Utama |
 | :--- | :--- |
-| Backend | PHP ^8.2, Laravel 12, Sanctum, Ziggy |
-| Frontend | Vue 3 (Composition API `<script setup>`), Inertia.js 2, Tailwind CSS v3, Vite 7 |
-| Database | MariaDB / MySQL (`db-toko` + tabel/view/trigger legacy dipertahankan) |
-| Testing & Audit | PHPUnit 11, Laravel Pint, Vite Production Build |
+| **Backend** | PHP `^8.2`, Laravel `^12.0`, Sanctum `^4.0`, Ziggy `^2.0` |
+| **Frontend** | Vue `^3.4` (`<script setup>`), Inertia.js `^2.0`, Tailwind CSS `^3.2`, Vite `^7.0` |
+| **Database** | MariaDB / MySQL (`db-toko` + tabel/view/trigger legacy dipertahankan) |
+| **Kualitas & Uji** | PHPUnit `^11.5`, Laravel Pint `^1.24`, Vite Production Build |
 
-Struktur kode utama:
-- Backend: [`app/Http/Controllers/`](app/Http/Controllers), [`app/Services/`](app/Services), [`app/Policies/`](app/Policies), [`app/Http/Requests/`](app/Http/Requests), [`app/Http/Resources/`](app/Http/Resources), [`app/Models/`](app/Models)
-- Frontend: [`resources/js/Layouts/`](resources/js/Layouts), [`resources/js/Components/`](resources/js/Components), [`resources/js/Pages/`](resources/js/Pages), [`resources/js/Composables/`](resources/js/Composables)
-- Database & Konfigurasi: [`database/migrations/`](database/migrations), [`database/seeders/`](database/seeders), [`config/store.php`](config/store.php)
+<details>
+<summary><strong>Lihat Struktur Direktori Utama Proyek</strong></summary>
+
+```text
+app-toko/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/        # Store, Dashboard, Produk, Kategori, Pelanggan, Transaksi, Cabang, Laporan, User, Pengaturan
+│   │   ├── Middleware/         # EnsureUserHasRole, HandleInertiaRequests
+│   │   ├── Requests/           # Form Request validasi & otorisasi per modul
+│   │   └── Resources/          # API/Inertia JSON Resources tanpa wrapping
+│   ├── Models/                 # User, Produk, Kategori, Pelanggan, Cabang, Transaksi, DetailTransaksi, LogAktivitas
+│   ├── Policies/               # Kebijakan otorisasi (403 enforcement per model)
+│   └── Services/               # TransaksiService, LaporanService, ImageCompressionService
+├── config/store.php            # Identitas toko untuk storefront & header nota
+├── database/
+│   ├── migrations/             # 15 file migration non-destruktif
+│   └── seeders/                # UserSeeder, KategoriSeeder, ProdukSeeder (local/testing)
+├── resources/js/
+│   ├── Components/             # UI base, Forms, Tables, Feedback (ToastNotification, ConfirmDialog)
+│   ├── Composables/            # usePermissions, useCurrency, useDate
+│   ├── Layouts/                # StoreLayout, AdminLayout, CashierLayout
+│   ├── Pages/                  # Store, Dashboard, Produk, Kategori, Pelanggan, Cabang, Transaksi, Laporan, Pengguna, Pengaturan
+│   └── Utils/                  # imageCompression.js
+├── routes/web.php              # Peta route publik, operasional (admin/kasir), dan admin-only
+└── tests/Feature/              # Suite pengujian PHPUnit lengkap
+```
+
+</details>
 
 ---
 
-## Panduan Instalasi
+## Role dan Hak Akses
+
+| Modul / Fitur | Admin | Kasir | Penegakan Server |
+| :--- | :---: | :---: | :--- |
+| Storefront Publik (`/`, `/shop`) | Ya | Ya | Route publik |
+| Dashboard Ringkasan Eksekutif & Grafik | Ya | Operasional | Role check + Gate `view-daily-sales` |
+| Lihat & Tambah Produk Baru | Ya | Ya | `ProdukPolicy::viewAny` / `create` |
+| Edit & Hapus Produk | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `ProdukPolicy` |
+| Lihat & Tambah Pelanggan Baru | Ya | Ya | `PelangganPolicy::viewAny` / `create` |
+| Edit & Hapus Pelanggan | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `PelangganPolicy` |
+| Lihat, Riwayat & Buat Transaksi POS | Ya | Ya | `TransaksiPolicy` & Gate `view-transaction-history` |
+| Cetak Nota Thermal (`40/58/80 mm`) | Ya | Ya | `TransaksiPolicy::view` |
+| Kategori & Cabang (Lihat / Kelola) | Ya (CRUD) | Read-only (`403` mutasi) | Middleware `role:admin` |
+| Laporan Penjualan & Export CSV | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `view-reports` |
+| Manajemen Pengguna & Pengaturan | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `manage-settings` |
+
+> [!NOTE]
+> Registrasi publik (`/register`) dinonaktifkan. Penambahan akun staf serta perubahan role hanya dapat dilakukan oleh **Administrator**, dan sistem menolak upaya admin menurunkan/menonaktifkan akunnya sendiri.
+
+---
+
+## Instalasi dan Konfigurasi
 
 ### Prasyarat Sistem
-- **PHP >= 8.2** dengan ekstensi `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, dan disarankan **`gd`** (dengan dukungan WebP untuk optimasi unggahan foto produk) serta `exif`.
+- **PHP `>= 8.2`** (ekstensi `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, plus `gd` dan `exif` untuk Auto File Compression)
 - **Composer**
-- **Node.js >= 20** dan **NPM**
-- **MariaDB / MySQL** (misalnya melalui XAMPP atau Laragon)
+- **Node.js `>= 20`** & **NPM**
+- **MariaDB / MySQL** (misalnya via XAMPP atau Laragon)
 
-### Langkah Instalasi
+### Setup Cepat (Rekomendasi)
 
-1. **Clone atau masuk ke direktori proyek**
-   ```bash
-   cd /path/to/app-toko
-   ```
-2. **Instal dependensi PHP dan JavaScript**
+> [!NOTE]
+> Pastikan layanan MariaDB/MySQL aktif dan database `db-toko` sudah dibuat terlebih dahulu (`root` tanpa password sesuai `.env.example`), karena `composer run setup` langsung menjalankan `php artisan migrate --force`.
+
+```bash
+# 1. Masuk ke direktori proyek
+cd app-toko
+
+# 2. Instal dependensi, salin .env, generate APP_KEY, migrate, dan build aset
+composer run setup
+
+# 3. Buat symbolic link agar foto produk & kategori dapat diakses publik
+php artisan storage:link
+```
+
+<details>
+<summary><strong>Atau Instalasi Langkah demi Langkah &amp; Konfigurasi <code>.env</code></strong></summary>
+
+1. Instal paket PHP dan Node.js:
    ```bash
    composer install
    npm install
    ```
-3. **Siapkan file environment**
+2. Salin konfigurasi environment dan buat `APP_KEY`:
    ```bash
    cp .env.example .env
    php artisan key:generate
    ```
-4. **Buat symbolic link penyimpanan gambar publik**
-   ```bash
-   php artisan storage:link
-   ```
-
----
-
-## Panduan Konfigurasi Database
-
-1. **Siapkan database MariaDB/MySQL**
-   - Apabila Anda sudah memiliki database awal `db-toko` (beserta tabel legacy `tbl_cabang`, `tbl_pelanggan`, `tbl_transaksi`, `tbl_detail_transaksi`, view, procedure, function, dan trigger), pertahankan database tersebut dan pastikan nama databasenya cocok pada `.env`.
-   - Jika memulai dari database kosong, buat database baru terlebih dahulu (contoh: `db-toko`).
-2. **Sesuaikan konfigurasi `.env`**
+3. Sesuaikan koneksi database MariaDB/MySQL serta identitas toko pada `.env`:
    ```dotenv
    APP_NAME="TokoKita"
    APP_URL=http://127.0.0.1:8000
@@ -94,128 +195,115 @@ Struktur kode utama:
    DB_DATABASE=db-toko
    DB_USERNAME=root
    DB_PASSWORD=
-   ```
-3. **Konfigurasi identitas toko & header nota (opsional di `.env`)**
-   ```dotenv
+
    STORE_NAME="TokoKita"
    STORE_TAGLINE="Layanan Kasir & Kebutuhan Harian"
-   STORE_ADDRESS="Jl. Melati No. 12, Jakarta"
+   STORE_ADDRESS="Jl. Melati No. 12, Ponorogo"
    STORE_PHONE="021-555-0199"
    STORE_HOURS="Buka Setiap Hari 08.00 - 21.00 WIB"
    STORE_LOGO_URL=
    ```
-4. **Jalankan migration (aman untuk database `db-toko` yang sudah berisi data)**
+4. Buat database `db-toko` (atau impor `db-toko` awal jika tersedia), lalu jalankan seluruh migration:
    ```bash
    php artisan migrate
+   php artisan storage:link
    ```
-   > Seluruh migration tambahan (`2026_11_11_*`) dirancang **non-destruktif** dan menjaga seluruh data transaksi serta objek SQL legacy tetap utuh.
-5. **Seeding awal (hanya untuk environment `local` / `testing`)**
-   ```bash
-   php artisan db:seed
-   ```
-   Seeder bawaan (`UserSeeder`, `KategoriSeeder`, `ProdukSeeder`) hanya aktif saat `APP_ENV=local` atau `testing` untuk mencegah masuknya data contoh ke produksi.
 
-   Akun uji lokal default yang dibuat oleh `UserSeeder`:
-   | Role | Email | Password Default |
-   | :--- | :--- | :--- |
-   | **Admin** | `admin@toko.test` | `password` |
-   | **Kasir** | `kasir@toko.test` | `password` |
+</details>
 
-   > Segera ganti password atau buat akun resmi melalui menu **Pengguna** sebelum aplikasi dipakai di lingkungan produksi.
+### Seeding Awal & Akun Uji (`local` / `testing`)
 
----
+Untuk mengisi akun uji, kategori, dan produk contoh di environment lokal:
 
-## Panduan Menjalankan Project
-
-### Mode Pengembangan (*Development*)
-Jalankan server Laravel dan Vite dev server secara bersamaan:
 ```bash
-composer run dev
+php artisan db:seed
 ```
-Atau secara terpisah di dua terminal:
+
+| Role | Email | Password Default |
+| :--- | :--- | :--- |
+| **Admin** | `admin@toko.test` | `password` |
+| **Kasir** | `kasir@toko.test` | `password` |
+
+> [!TIP]
+> Seeder bawaan (`UserSeeder`, `KategoriSeeder`, `ProdukSeeder`) otomatis melewati eksekusi bila `APP_ENV` bukan `local` atau `testing`. Segera ubah kata sandi sebelum deploy ke produksi.
+
+### Menjalankan Aplikasi
+
 ```bash
+# Mode Development (menjalankan Laravel server, queue listener, logs, & Vite HMR)
+composer run dev
+
+# Atau jalankan manual di 2 terminal terpisah:
 php artisan serve
 npm run dev
 ```
-Buka browser ke `http://127.0.0.1:8000`.
 
-### Mode Produksi (*Production Build*)
+Untuk **Production Build**:
+
 ```bash
 npm run build
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
-Lalu jalankan web server pilihan Anda (Apache/Nginx/Laravel Herd/PHP-FPM) yang mengarah ke direktori `public/`.
 
 ---
 
-## Panduan Role Admin dan Kasir
+## Panduan Transaksi POS
 
-| Fitur / Modul | Admin | Kasir | Penegakan Backend |
-| :--- | :---: | :---: | :--- |
-| Storefront Publik (`/`, `/shop`) | Ya | Ya | Publik (tanpa login) |
-| Dashboard Ringkasan Eksekutif & Grafik | Ya | Terbatas | Dashboard operasional kasir & Gate `view-daily-sales` |
-| Lihat Daftar & Detail Produk | Ya | Ya | `ProdukPolicy::viewAny` / `view` |
-| Tambah Produk Baru | Ya | Ya | `ProdukPolicy::create` |
-| Edit & Hapus Produk | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `ProdukPolicy::update` / `delete` |
-| Lihat & Tambah Pelanggan | Ya | Ya | `PelangganPolicy::viewAny` / `create` |
-| Edit & Hapus Pelanggan | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `PelangganPolicy::update` / `delete` |
-| Lihat & Buat Transaksi POS | Ya | Ya | `TransaksiPolicy::viewAny` / `create` |
-| Riwayat Transaksi | Ya | Ya | Gate `view-transaction-history` |
-| Cetak Nota Thermal (`40/58/80 mm`) | Ya | Ya | `TransaksiPolicy::view` |
-| Lihat Kategori & Cabang | Ya (CRUD) | Read-only | Middleware `role:admin` pada endpoint tulis |
-| Laporan Penjualan & Export CSV | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `view-reports` |
-| Manajemen Pengguna & Role | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `manage-users` |
-| Pengaturan Aplikasi | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `manage-settings` |
-
-> **Catatan Keamanan:** Pembatasan pada role Kasir tidak hanya disembunyikan di UI Vue, melainkan ditegakkan penuh di lapisan route (`role:admin`), Form Request, Policy, dan Gate sehingga akses langsung via URL/API mengembalikan **HTTP 403**.
+1. Login sebagai **Admin** atau **Kasir**, lalu buka menu **Transaksi Baru** (`/transaksi/create`).
+2. Pilih **Pelanggan** (atau gunakan pintasan **+ Pelanggan Baru** jika belum terdaftar) dan **Cabang**.
+3. Cari barang lewat nama atau kode SKU (tekan `Enter` untuk SKU unik) lalu klik kartu produk agar masuk ke keranjang.
+4. Sesuaikan **Jumlah Barang** dengan tombol `-` / `+` atau ketik langsung sesuai stok tersedia.
+5. Pilih metode pembayaran (`Tunai`, `QRIS`, `Transfer`, atau `Debit`) dan masukkan **Uang Pembayaran** untuk melihat kembalian instan.
+6. Klik **Proses Transaksi**. Server memvalidasi stok, menghitung ulang subtotal/total akhir, menyimpan snapshot produk & `nama_kasir`, lalu membuka halaman detail transaksi siap cetak.
 
 ---
 
-## Panduan Transaksi (POS)
+## Konfigurasi Printer Thermal
 
-1. Masuk sebagai **Admin** atau **Kasir**, lalu buka menu **Transaksi Baru** (`/transaksi/create`).
-2. **Pilih Pelanggan** melalui dropdown (atau klik pintasan **+ Tambah Pelanggan** jika pembeli baru). Pilih **Cabang** asal transaksi bila tersedia.
-3. **Tambahkan Barang**: cari produk berdasarkan nama atau kode SKU, lalu klik kartu produk pada katalog kiri. Barang otomatis masuk ke keranjang kanan.
-4. **Atur Jumlah Barang**: gunakan tombol `-` / `+` atau ketik langsung kuantitasnya (sistem membatasi maksimal sesuai stok aktif).
-5. **Pilih Metode Pembayaran** (`Tunai`, `QRIS`, `Transfer`, atau `Debit`):
-   - Untuk metode non-tunai, tersedia tombol isi pas sesuai total belanja.
-   - Untuk tunai, masukkan nominal pada kolom **Uang Bayar** (atau pakai tombol cepat `Uang Pas`, `+50rb`, `+100rb`). Sistem menampilkan indikator **Kembalian** atau **Kurang Bayar** secara langsung.
-6. Klik **Proses Transaksi**. Server memvalidasi ulang stok dengan `lockForUpdate()`, mengambil harga dari database, menghitung subtotal, total akhir, dan kembalian, lalu menyimpan header dan detail secara atomik ke `tbl_transaksi` dan `tbl_detail_transaksi`.
-7. Setelah tersimpan, aplikasi mengarahkan ke halaman detail transaksi lengkap dengan tombol **Cetak Nota** dan pilih ukuran kertas.
+Halaman `/transaksi/{id}/nota` menyediakan isolasi cetak khusus via `@media print`:
 
----
-
-## Panduan Konfigurasi Printer Thermal
-
-Halaman cetak nota (`/transaksi/{id}/nota`) menyiapkan layout khusus thermal yang terisolasi via `@media print`:
-
-1. **Pilih Ukuran Roll pada Toolbar Nota**:
-   - **58 mm (Standar)**: Pilihan utama untuk printer thermal kasir 58 mm (`width: 58mm`, padding `3mm`, monospasi `10px`).
-   - **80 mm (Lebar)**: Untuk printer kasir meja 80 mm (`width: 80mm`, padding `4mm`, monospasi `11px`).
-   - **40 mm (Mini)**: Gunakan opsi ini apabila driver printer 58 mm Anda memiliki area cetak efektif hanya `40–44 mm` sehingga angka sisi kanan tidak terpotong.
+1. **Pilih Lebar Kertas pada Toolbar Nota**:
+   - **58 mm (Standar)**: Pilihan utama untuk printer thermal kasir `58 mm` (`width: 58mm`, padding `3mm`).
+   - **80 mm (Lebar)**: Untuk printer kasir meja `80 mm` (`width: 80mm`, padding `4mm`).
+   - **40 mm (Mini)**: Direkomendasikan bila driver printer `58 mm` memiliki area cetak efektif `40–44 mm` agar angka sisi kanan tidak terpotong.
 2. **Pengaturan Dialog Print Browser (Chrome / Edge)**:
-   - **Destination**: Pilih printer thermal yang terpasang di sistem operasi.
-   - **Paper size**: Pilih ukuran roll kertas di driver printer (misalnya `58mm x 210mm` / `58mm Receipt` atau `80mm Receipt`).
+   - **Destination**: Pilih printer thermal yang terpasang.
+   - **Paper size**: Sesuaikan dengan roll kertas (`58mm Receipt` / `80mm Receipt`).
    - **Margins**: Pilih **None / Tidak Ada**.
-   - **Scale**: Atur ke **100% / Default** (hindari *Fit to printable area* bila membuat font terlalu kecil).
-   - **Options**: **Matikan** opsi *Headers and footers* agar URL halaman dan nomor halaman browser tidak ikut tercetak.
-   - **(Opsional Kasir Cepat)**: Pada Google Chrome/Edge di komputer kasir khusus, flag `--kiosk-printing` pada shortcut browser dapat diaktifkan bila ingin mencetak langsung tanpa konfirmasi dialog berulang.
+   - **Scale**: Atur ke **100% / Default**.
+   - **Options**: **Matikan** *Headers and footers* agar URL dan tanggal browser tidak ikut tercetak.
 
 ---
 
-## Pengujian & Verifikasi Kualitas
+## Pengujian dan Verifikasi
 
-Menjalankan seluruh suite test PHPUnit (menggunakan database terisolasi `db_toko_test` sesuai [`phpunit.xml`](phpunit.xml)):
+Aplikasi menggunakan database terisolasi `db_toko_test` (lihat [`phpunit.xml`](phpunit.xml)) untuk mencegah gangguan terhadap database operasional `db-toko`.
+
 ```bash
+# Menjalankan seluruh test suite PHPUnit (73 tests)
 php artisan test
-```
-Memeriksa standar format kode PHP (Laravel Pint):
-```bash
+
+# Memeriksa standar format kode PHP (Laravel Pint)
 vendor/bin/pint --test
-```
-Membuat bundle produksi frontend (Vite):
-```bash
+
+# Memvalidasi kompilasi aset frontend (Vite + Vue 3 + Tailwind CSS)
 npm run build
 ```
+
+<details>
+<summary><strong>Daftar Cakupan Suite Pengujian Otomatis</strong></summary>
+
+- `tests/Feature/Auth/*` — Login, logout, validasi, rate limit, registrasi publik nonaktif, profil & password
+- [`tests/Feature/RoleAuthenticationAndInertiaTest.php`](tests/Feature/RoleAuthenticationAndInertiaTest.php) — Proteksi guest, shared Inertia permissions, RBAC admin vs kasir
+- [`tests/Feature/ProdukAuthorizationTest.php`](tests/Feature/ProdukAuthorizationTest.php) — Akses produk kasir (`create`/`view`) vs penolakan `403` untuk `edit`/`delete`
+- [`tests/Feature/PelangganAuthorizationTest.php`](tests/Feature/PelangganAuthorizationTest.php) — Akses pelanggan & penolakan duplikasi nomor HP
+- [`tests/Feature/AdminOnlyModulesAuthorizationTest.php`](tests/Feature/AdminOnlyModulesAuthorizationTest.php) — Proteksi modul khusus admin & blokir user nonaktif
+- [`tests/Feature/TransaksiFlowTest.php`](tests/Feature/TransaksiFlowTest.php) — Checkout atomik, anti-tampering harga/total, snapshot `nama_kasir`, validasi stok, cetak nota `40/58/80 mm`
+- [`tests/Feature/ImageAutoCompressionTest.php`](tests/Feature/ImageAutoCompressionTest.php) — Auto kompresi gambar `> 2 MB`, skip `<= 2 MB`, aspek rasio, validasi MIME/ekstensi
+- [`tests/Feature/AdminDashboardAndReportsTest.php`](tests/Feature/AdminDashboardAndReportsTest.php) — Akurasi agregasi dashboard, grafik penjualan, filter laporan, & sanitasi formula CSV
+- [`tests/Feature/StorefrontAndRelationsTest.php`](tests/Feature/StorefrontAndRelationsTest.php) — Storefront publik, filter katalog, & relasi antar model
+- [`tests/Feature/Prompt11SecurityAndAuditTest.php`](tests/Feature/Prompt11SecurityAndAuditTest.php) — Security audit end-to-end, anti-spoofing transaksi, produk soft-delete pada struk, & halaman error Inertia (`403`/`404`)
+
+</details>

@@ -9,6 +9,10 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    animateChrome: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['close']);
@@ -191,7 +195,11 @@ const adminLinks = computed(() => [
         </div>
 
         <!-- Nav Links -->
-        <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Menu utama">
+        <nav
+            class="flex-1 space-y-6 overflow-y-auto px-3 py-4"
+            :class="{ 'animate-enter-soft': animateChrome }"
+            aria-label="Menu utama"
+        >
             <template v-if="isAdmin">
                 <div>
                     <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">

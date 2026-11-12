@@ -157,7 +157,10 @@ const printReport = () => {
             </form>
 
             <!-- Customer Summary KPIs -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 120ms"
+            >
                 <StatCard
                     label="Pelanggan Tercatat"
                     :value="aggregates.total_pelanggan ?? 0"

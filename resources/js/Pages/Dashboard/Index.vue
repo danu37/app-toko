@@ -76,7 +76,10 @@ const { formatCurrency } = useCurrency();
             </div>
 
             <!-- Admin 4 Primary KPIs -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 55ms"
+            >
                 <StatCard
                     label="Total Produk"
                     :value="summary.total_produk ?? 0"
@@ -104,7 +107,10 @@ const { formatCurrency } = useCurrency();
             </div>
 
             <!-- Sales Chart + Stock Summary -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-6 lg:grid-cols-12"
+                style="--stagger-base: 150ms"
+            >
                 <div class="lg:col-span-8">
                     <SalesChart :sales-chart="salesChart" />
                 </div>
@@ -114,7 +120,10 @@ const { formatCurrency } = useCurrency();
             </div>
 
             <!-- Top Products + Recent Transactions -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-6 lg:grid-cols-12"
+                style="--stagger-base: 210ms"
+            >
                 <div class="lg:col-span-5">
                     <TopProductsTable :products="topProducts" />
                 </div>
@@ -165,7 +174,10 @@ const { formatCurrency } = useCurrency();
             </div>
 
             <!-- 3 Clean Daily Operational Metrics -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-3"
+                style="--stagger-base: 55ms"
+            >
                 <StatCard
                     label="Transaksi Hari Ini"
                     :value="summary.transaksi_hari_ini ?? 0"

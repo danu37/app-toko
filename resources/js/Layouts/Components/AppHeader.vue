@@ -9,6 +9,10 @@ defineProps({
         type: String,
         default: '',
     },
+    animateChrome: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['toggleSidebar']);
@@ -16,7 +20,10 @@ const { user, isAdmin } = usePermissions();
 </script>
 
 <template>
-    <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/95 px-4 backdrop-blur print:hidden sm:px-6">
+    <header
+        class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutral-200 bg-white/95 px-4 backdrop-blur print:hidden sm:px-6"
+        :class="{ 'animate-enter-chrome': animateChrome }"
+    >
         <div class="flex min-w-0 items-center gap-3">
             <button
                 type="button"

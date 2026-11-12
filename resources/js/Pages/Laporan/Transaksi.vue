@@ -176,7 +176,10 @@ const printReport = () => {
                 @reset="resetFilters"
             />
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 120ms"
+            >
                 <StatCard
                     label="Total Transaksi"
                     :value="aggregates.total_transaksi ?? 0"

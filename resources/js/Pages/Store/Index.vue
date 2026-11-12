@@ -59,14 +59,14 @@ const productLabel = (product) => {
     <Head title="Beranda Toko" />
 
     <StoreLayout :branches="branches" :categories="categories">
-        <div v-if="errorMessage" class="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <div v-if="errorMessage" class="animate-enter-soft mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
             <BaseAlert variant="danger" :message="errorMessage" />
         </div>
 
         <!-- 1. HERO SECTION -->
         <section class="border-b border-neutral-200/80 bg-stone-50">
             <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-14 lg:px-8 lg:py-20">
-                <div class="space-y-6 lg:col-span-6">
+                <div class="enter-stagger space-y-6 lg:col-span-6">
                     <div class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
                         Katalog Kurasi Harian
@@ -112,7 +112,10 @@ const productLabel = (product) => {
                 </div>
 
                 <div class="lg:col-span-6">
-                    <div class="overflow-hidden rounded-2xl border border-neutral-200/90 bg-white p-2.5 shadow-sm">
+                    <div
+                        class="animate-enter-hero overflow-hidden rounded-2xl border border-neutral-200/90 bg-white p-2.5 shadow-sm"
+                        style="--enter-delay: 90ms"
+                    >
                         <div class="overflow-hidden rounded-xl bg-stone-100">
                             <img
                                 src="/images/store/hero-online-shopping.jpg"
@@ -136,7 +139,10 @@ const productLabel = (product) => {
 
         <!-- 2. SHOP BY CATEGORIES -->
         <section id="kategori" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-            <div class="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+            <div
+                class="animate-enter mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                style="--enter-delay: 110ms"
+            >
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
                         Kurasi Departemen
@@ -163,7 +169,8 @@ const productLabel = (product) => {
 
             <div
                 v-else
-                class="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-4"
+                class="enter-stagger-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pt-1 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:py-0 lg:grid-cols-4"
+                style="--stagger-base: 140ms"
             >
                 <Link
                     v-for="cat in categories"
@@ -199,7 +206,10 @@ const productLabel = (product) => {
         <!-- 3. OUR BESTSELLERS -->
         <section id="bestsellers" class="border-t border-neutral-200/80 bg-stone-50/70">
             <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-                <div class="mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div
+                    class="animate-enter mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    style="--enter-delay: 160ms"
+                >
                     <div>
                         <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
                             Produk Pilihan &amp; Terlaris
@@ -230,7 +240,11 @@ const productLabel = (product) => {
                     </template>
                 </EmptyState>
 
-                <div v-else class="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
+                <div
+                    v-else
+                    class="enter-stagger-grid grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-4"
+                    style="--stagger-base: 185ms"
+                >
                     <article
                         v-for="product in featuredProducts"
                         :key="product.id_produk"
@@ -293,7 +307,10 @@ const productLabel = (product) => {
 
         <!-- 4. PROMOTION SECTION -->
         <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-            <div class="grid grid-cols-1 overflow-hidden rounded-2xl border border-neutral-200 bg-stone-50 lg:grid-cols-12">
+            <div
+                class="animate-enter grid grid-cols-1 overflow-hidden rounded-2xl border border-neutral-200 bg-stone-50 lg:grid-cols-12"
+                style="--enter-delay: 200ms"
+            >
                 <div class="lg:col-span-6">
                     <img
                         src="/images/store/promo-editorial.webp"
@@ -339,7 +356,7 @@ const productLabel = (product) => {
         <section id="tentang-kami" class="border-t border-neutral-200 bg-white">
             <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
                 <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
-                    <div class="lg:col-span-4">
+                    <div class="animate-enter lg:col-span-4" style="--enter-delay: 210ms">
                         <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
                             Tentang Kami
                         </p>
@@ -348,7 +365,10 @@ const productLabel = (product) => {
                         </h2>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 lg:col-span-8">
+                    <div
+                        class="enter-stagger-grid grid grid-cols-1 gap-5 sm:grid-cols-3 lg:col-span-8"
+                        style="--stagger-base: 230ms"
+                    >
                         <div class="rounded-xl border border-neutral-200 bg-stone-50/50 p-5">
                             <h3 class="text-sm font-semibold text-neutral-900">Kurasi Produk Harian</h3>
                             <p class="mt-2 text-xs leading-relaxed text-neutral-600">

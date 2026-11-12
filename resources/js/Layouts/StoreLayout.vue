@@ -4,6 +4,7 @@ import { Link, router } from '@inertiajs/vue3';
 import BaseDropdown from '@/Components/UI/BaseDropdown.vue';
 import AppFooter from '@/Layouts/Components/AppFooter.vue';
 import { usePermissions } from '@/Composables/usePermissions';
+import { usePageEntrance } from '@/Composables/usePageEntrance';
 
 defineProps({
     branches: {
@@ -17,6 +18,7 @@ defineProps({
 });
 
 const { user } = usePermissions();
+const { animateChrome } = usePageEntrance('store');
 const mobileMenuOpen = ref(false);
 const searchOpen = ref(false);
 const searchInputRef = ref(null);
@@ -59,7 +61,10 @@ const submitSearch = () => {
             aria-hidden="true"
         />
 
-        <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur-sm">
+        <header
+            class="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur-sm"
+            :class="{ 'animate-enter-chrome': animateChrome }"
+        >
             <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
                 <!-- Left: Logo -->
                 <Link :href="route('home')" class="flex shrink-0 items-center gap-2.5">

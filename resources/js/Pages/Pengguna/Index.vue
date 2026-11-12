@@ -168,7 +168,10 @@ const roleMatrix = [
     <AdminLayout title="Manajemen Pengguna &amp; Pengaturan Role">
         <div class="space-y-6">
             <!-- Role Stats -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 0ms"
+            >
                 <StatCard label="Total Akun" :value="roleStats.total ?? 0" tone="neutral" />
                 <StatCard label="Administrator" :value="roleStats.admin ?? 0" description="Akses penuh sistem" tone="sky" />
                 <StatCard label="Kasir" :value="roleStats.kasir ?? 0" description="Operasional harian" tone="emerald" />

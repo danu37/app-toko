@@ -39,7 +39,7 @@ const triggerPrint = () => {
 
     <div class="min-h-screen bg-neutral-100 text-neutral-900 print:min-h-0 print:bg-white">
         <!-- Toolbar Cetak (disembunyikan saat print) -->
-        <header class="no-print sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur">
+        <header class="no-print animate-enter-chrome sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur">
             <div class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
                 <div class="flex flex-wrap items-center gap-2">
                     <BaseButton
@@ -91,13 +91,18 @@ const triggerPrint = () => {
         <!-- Area Nota & Panduan Cetak -->
         <main class="mx-auto max-w-4xl px-4 py-8 print:m-0 print:max-w-none print:p-0">
             <div class="flex flex-col items-center gap-6 print:block">
-                <PrintReceipt
-                    :transaction="transaction"
-                    :paper-size="paperSize"
-                    :store-info="storeInfo"
-                />
+                <div class="animate-enter flex w-full justify-center print:block print:w-auto">
+                    <PrintReceipt
+                        :transaction="transaction"
+                        :paper-size="paperSize"
+                        :store-info="storeInfo"
+                    />
+                </div>
 
-                <div class="no-print w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600">
+                <div
+                    class="no-print animate-enter-soft w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600"
+                    style="--enter-delay: 85ms"
+                >
                     <p class="font-semibold text-neutral-900">Panduan Pengaturan Printer Thermal ({{ paperSize }}):</p>
                     <ul class="mt-1.5 list-disc space-y-1 pl-4">
                         <li>Pada dialog cetak browser, atur <strong>Margins</strong> ke <strong>None / Tidak Ada</strong> dan matikan opsi <strong>Headers and footers</strong>.</li>

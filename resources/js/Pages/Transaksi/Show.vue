@@ -75,7 +75,10 @@ const printNota = () => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-12 print:block">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-6 lg:grid-cols-12 print:block"
+                style="--stagger-base: 55ms"
+            >
                 <!-- Detail Transaksi (Screen View) -->
                 <div class="no-print space-y-6 lg:col-span-8 print:hidden">
                     <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">

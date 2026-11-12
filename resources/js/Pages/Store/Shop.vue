@@ -69,7 +69,7 @@ const sortOptions = [
 
     <StoreLayout :branches="branches" :categories="categories">
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div class="mb-8 flex flex-col justify-between gap-4 border-b border-neutral-200 pb-6 md:flex-row md:items-end">
+            <div class="animate-enter mb-8 flex flex-col justify-between gap-4 border-b border-neutral-200 pb-6 md:flex-row md:items-end">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-neutral-900">Katalog Produk</h1>
                     <p class="mt-1 text-sm text-neutral-500">
@@ -95,7 +95,10 @@ const sortOptions = [
             </div>
 
             <!-- Category Chips -->
-            <div class="mb-6 flex flex-wrap items-center gap-2">
+            <div
+                class="animate-enter-soft mb-6 flex flex-wrap items-center gap-2"
+                style="--enter-delay: 55ms"
+            >
                 <button
                     type="button"
                     class="rounded-full border px-4 py-1.5 text-xs font-medium transition"
@@ -139,7 +142,10 @@ const sortOptions = [
             </EmptyState>
 
             <div v-else class="space-y-6">
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div
+                    class="enter-stagger-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+                    style="--stagger-base: 95ms"
+                >
                     <Link
                         v-for="product in products.data"
                         :key="product.id_produk"
@@ -171,7 +177,10 @@ const sortOptions = [
                     </Link>
                 </div>
 
-                <div class="overflow-hidden rounded-xl border border-neutral-200">
+                <div
+                    class="animate-enter-soft overflow-hidden rounded-xl border border-neutral-200"
+                    style="--enter-delay: 220ms"
+                >
                     <BasePagination :meta="products.meta" />
                 </div>
             </div>

@@ -67,36 +67,38 @@ const goBack = () => {
     <Head :title="`${status} - ${meta.title}`" />
 
     <div class="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-12 text-neutral-900">
-        <div class="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
-            <Link href="/" class="mx-auto inline-flex items-center gap-2">
-                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold tracking-wider text-white">
-                    TK
-                </span>
-                <span class="text-sm font-semibold tracking-tight text-neutral-900">TokoKita</span>
-            </Link>
+        <div class="animate-enter w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
+            <div class="enter-stagger" style="--stagger-base: 50ms">
+                <Link href="/" class="mx-auto inline-flex items-center gap-2">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold tracking-wider text-white">
+                        TK
+                    </span>
+                    <span class="text-sm font-semibold tracking-tight text-neutral-900">TokoKita</span>
+                </Link>
 
-            <div class="mt-6">
-                <span class="inline-flex rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-semibold tracking-wider text-neutral-700">
-                    {{ meta.badge }}
-                </span>
-                <h1 class="mt-3 text-2xl font-bold tracking-tight text-neutral-900">
-                    {{ meta.title }}
-                </h1>
-                <p class="mt-2 text-sm leading-relaxed text-neutral-500">
-                    {{ meta.description }}
-                </p>
-            </div>
+                <div class="mt-6">
+                    <span class="inline-flex rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-semibold tracking-wider text-neutral-700">
+                        {{ meta.badge }}
+                    </span>
+                    <h1 class="mt-3 text-2xl font-bold tracking-tight text-neutral-900">
+                        {{ meta.title }}
+                    </h1>
+                    <p class="mt-2 text-sm leading-relaxed text-neutral-500">
+                        {{ meta.description }}
+                    </p>
+                </div>
 
-            <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
-                <BaseButton variant="secondary" @click="goBack">
-                    &larr; Kembali
-                </BaseButton>
-                <BaseButton v-if="authUser" href="/dashboard">
-                    Ke Dashboard
-                </BaseButton>
-                <BaseButton v-else href="/">
-                    Ke Beranda Toko
-                </BaseButton>
+                <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+                    <BaseButton variant="secondary" @click="goBack">
+                        &larr; Kembali
+                    </BaseButton>
+                    <BaseButton v-if="authUser" href="/dashboard">
+                        Ke Dashboard
+                    </BaseButton>
+                    <BaseButton v-else href="/">
+                        Ke Beranda Toko
+                    </BaseButton>
+                </div>
             </div>
         </div>
     </div>

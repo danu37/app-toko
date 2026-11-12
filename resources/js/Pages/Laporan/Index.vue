@@ -204,7 +204,10 @@ const printReport = () => {
             />
 
             <!-- Rekap Pendapatan KPIs -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                style="--stagger-base: 120ms"
+            >
                 <StatCard
                     label="Total Pendapatan"
                     :value="formatCurrency(aggregates.total_pendapatan)"
@@ -239,7 +242,10 @@ const printReport = () => {
             />
 
             <!-- Breakdown: Payment Methods, Branches & Cashiers -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div
+                class="enter-stagger-grid grid grid-cols-1 gap-6 lg:grid-cols-3"
+                style="--stagger-base: 210ms"
+            >
                 <section class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
                     <h3 class="text-base font-semibold text-neutral-900">Rekap Metode Pembayaran</h3>
                     <p class="mt-0.5 text-xs text-neutral-500">Distribusi omzet berdasarkan metode bayar.</p>

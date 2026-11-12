@@ -33,7 +33,7 @@ const { formatCurrency } = useCurrency();
 
     <StoreLayout :branches="branches" :categories="categories">
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <nav class="mb-6 flex items-center gap-2 text-xs text-neutral-500">
+            <nav class="animate-enter-soft mb-6 flex items-center gap-2 text-xs text-neutral-500">
                 <Link :href="route('home')" class="hover:text-neutral-900">Home</Link>
                 <span>/</span>
                 <Link :href="route('store.shop')" class="hover:text-neutral-900">Shop</Link>
@@ -43,7 +43,10 @@ const { formatCurrency } = useCurrency();
 
             <div class="grid grid-cols-1 gap-10 lg:grid-cols-12">
                 <div class="lg:col-span-6">
-                    <div class="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+                    <div
+                        class="animate-enter-hero overflow-hidden rounded-2xl border border-neutral-200 bg-white"
+                        style="--enter-delay: 50ms"
+                    >
                         <StoreMediaBox
                             :src="product.gambar_url"
                             :alt="product.nama_produk"
@@ -54,7 +57,10 @@ const { formatCurrency } = useCurrency();
                     </div>
                 </div>
 
-                <div class="flex flex-col justify-center space-y-5 lg:col-span-6">
+                <div
+                    class="enter-stagger flex flex-col justify-center space-y-5 lg:col-span-6"
+                    style="--stagger-base: 85ms"
+                >
                     <div class="flex flex-wrap items-center gap-2">
                         <BaseBadge variant="neutral">
                             {{ product.kategori?.nama_kategori ?? 'Umum' }}
@@ -98,8 +104,13 @@ const { formatCurrency } = useCurrency();
             </div>
 
             <section v-if="relatedProducts.length > 0" class="mt-14 border-t border-neutral-200 pt-10">
-                <h2 class="mb-6 text-lg font-semibold text-neutral-900">Produk Terkait</h2>
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <h2 class="animate-enter mb-6 text-lg font-semibold text-neutral-900" style="--enter-delay: 180ms">
+                    Produk Terkait
+                </h2>
+                <div
+                    class="enter-stagger-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+                    style="--stagger-base: 220ms"
+                >
                     <Link
                         v-for="item in relatedProducts"
                         :key="item.id_produk"
