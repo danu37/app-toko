@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PelangganDashboardController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\ProfileController;
@@ -98,12 +99,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->parameters(['pengguna' => 'pengguna'])
         ->except(['show']);
     Route::patch('/pengguna/{pengguna}/role', [UserController::class, 'updateRole'])->name('pengguna.role');
+    Route::delete('/pengguna/{pengguna}/rfid', [UserController::class, 'destroyRfid'])->name('pengguna.rfid.destroy');
+    Route::post('/pengguna/{pengguna}/rfid', [UserController::class, 'storeCard'])->name('pengguna.rfid.store');
+    Route::patch('/pengguna/{pengguna}/rfid/{card}/toggle', [UserController::class, 'toggleCardStatus'])->name('pengguna.rfid.toggle');
+    Route::delete('/pengguna/{pengguna}/rfid/{card}', [UserController::class, 'destroyCard'])->name('pengguna.rfid.card.destroy');
 
     // Pengaturan Aplikasi khusus Admin
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
 });
 
-Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
+// Dashboard Khusus Role Pelanggan
+Route::middleware(['auth', 'role:pelanggan'])->group(function () {
+    Route::get('/pelanggan/dashboard', [PelangganDashboardController::class, 'index'])->name('pelanggan.dashboard');
+    Route::get('/pelanggan/transaksi/{transaksi}/nota', [TransaksiController::class, 'nota'])->name('pelanggan.transaksi.nota');
+});
+
+Route::middleware(['auth', 'role:admin,kasir,pelanggan'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -72,6 +72,64 @@ defineProps({
                 </dl>
             </div>
 
+            <!-- Integrasi QRIS Nasional -->
+            <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-sm font-black text-white">
+                            QR
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-semibold text-neutral-900">Integrasi Pembayaran QRIS Nasional</h3>
+                                <BaseBadge variant="success">Aktif (POS &amp; Struk)</BaseBadge>
+                            </div>
+                            <p class="text-xs text-neutral-500">
+                                Standar pembayaran digital nasional (GPN/ASPI) terintegrasi pada kasir POS dan cetak nota.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+                    <div class="space-y-3 lg:col-span-8">
+                        <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="rounded-lg bg-neutral-50 p-3.5">
+                                <dt class="text-xs text-neutral-500">Nama Merchant Resmi</dt>
+                                <dd class="mt-1 text-sm font-bold text-neutral-900">{{ settings.qris?.merchant_name || 'Danu Anggo, Pakaian' }}</dd>
+                            </div>
+                            <div class="rounded-lg bg-neutral-50 p-3.5">
+                                <dt class="text-xs text-neutral-500">National Merchant ID (NMID)</dt>
+                                <dd class="mt-1 font-mono text-sm font-bold text-neutral-900">{{ settings.qris?.nmid || 'ID1026645584610' }}</dd>
+                            </div>
+                            <div class="rounded-lg bg-neutral-50 p-3.5">
+                                <dt class="text-xs text-neutral-500">Kode Terminal</dt>
+                                <dd class="mt-1 text-sm font-semibold text-neutral-900">{{ settings.qris?.terminal_code || 'A01' }}</dd>
+                            </div>
+                            <div class="rounded-lg bg-neutral-50 p-3.5">
+                                <dt class="text-xs text-neutral-500">Standar Pembayaran</dt>
+                                <dd class="mt-1 text-sm font-semibold text-neutral-900">QRIS &amp; Gerbang Pembayaran Nasional (GPN)</dd>
+                            </div>
+                        </dl>
+
+                        <div class="rounded-lg border border-neutral-100 bg-stone-50 p-3 text-xs text-neutral-600 space-y-1">
+                            <p class="font-medium text-neutral-800">Aplikasi Pembayaran yang Didukung:</p>
+                            <p>Semua aplikasi perbankan (BCA, Mandiri Livin, BRImo, BNI, BSI) dan dompet digital (GoPay, OVO, DANA, ShopeePay, LinkAja).</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-center lg:col-span-4">
+                        <div class="max-w-[160px] overflow-hidden rounded-xl border-2 border-neutral-900 bg-white shadow-sm">
+                            <img
+                                :src="settings.qris?.image_url || '/images/qris/qris-danu-anggo.jpg'"
+                                alt="Poster QRIS Danu Anggo, Pakaian"
+                                class="h-auto w-full object-contain"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
                 <h3 class="text-base font-semibold text-neutral-900">Kebijakan Keamanan &amp; Bisnis Aktif</h3>
                 <ul class="mt-4 space-y-2.5 text-sm text-neutral-600">

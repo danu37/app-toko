@@ -20,6 +20,9 @@ class ProdukService
         $payload['slug'] = $this->generateUniqueProductSlug($data['nama_produk']);
         $payload['is_featured'] = (bool) ($data['is_featured'] ?? false);
         $payload['is_active'] = (bool) ($data['is_active'] ?? true);
+        if (array_key_exists('barcode', $data)) {
+            $payload['barcode'] = ! empty(trim((string) ($data['barcode'] ?? ''))) ? trim((string) $data['barcode']) : null;
+        }
 
         if ($gambar) {
             $payload['gambar'] = $this->imageCompressionService->store($gambar, 'produk');
@@ -38,6 +41,10 @@ class ProdukService
 
         if (isset($data['nama_produk']) && $data['nama_produk'] !== $produk->nama_produk) {
             $payload['slug'] = $this->generateUniqueProductSlug($data['nama_produk'], $produk->id_produk);
+        }
+
+        if (array_key_exists('barcode', $data)) {
+            $payload['barcode'] = ! empty(trim((string) ($data['barcode'] ?? ''))) ? trim((string) $data['barcode']) : null;
         }
 
         if ($gambar) {

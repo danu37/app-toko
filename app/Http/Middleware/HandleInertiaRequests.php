@@ -41,6 +41,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'role' => $user->role,
                     'id_cabang' => $user->id_cabang,
+                    'id_pelanggan' => $user->id_pelanggan,
                     'is_active' => $user->is_active,
                     'cabang' => $user->cabang ? [
                         'id_cabang' => $user->cabang->id_cabang,
@@ -51,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'can' => $user && $user->is_active ? [
                     'isAdmin' => $user->isAdmin(),
                     'isKasir' => $user->isKasir(),
+                    'isPelanggan' => $user->isPelanggan(),
                     'viewDashboard' => $user->isAdmin() || $user->isKasir(),
                     'viewProducts' => $user->isAdmin() || $user->isKasir(),
                     'createProducts' => $user->isAdmin() || $user->isKasir(),

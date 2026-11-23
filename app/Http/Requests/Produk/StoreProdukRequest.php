@@ -18,6 +18,7 @@ class StoreProdukRequest extends FormRequest
         return [
             'id_kategori' => ['nullable', 'integer', 'exists:tbl_kategori,id_kategori'],
             'kode_produk' => ['nullable', 'string', 'max:50', 'unique:tbl_produk,kode_produk'],
+            'barcode' => ['nullable', 'string', 'max:100', 'unique:tbl_produk,barcode'],
             'nama_produk' => ['required', 'string', 'max:100'],
             'harga' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'stok' => ['required', 'integer', 'min:0'],

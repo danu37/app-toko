@@ -12,9 +12,13 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    customers: {
+        type: Array,
+        default: () => [],
+    },
     roles: {
         type: Array,
-        default: () => ['admin', 'kasir'],
+        default: () => ['admin', 'kasir', 'pelanggan'],
     },
 });
 
@@ -24,14 +28,18 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     role: 'kasir',
+    rfid_uid: '',
     id_cabang: '',
+    id_pelanggan: '',
     is_active: true,
 });
 
 const roleOptions = computed(() =>
     props.roles.map((r) => ({
         value: r,
-        label: r === 'admin' ? 'Administrator (Akses Penuh)' : 'Kasir (Operasional)',
+        label: r === 'admin'
+            ? 'Administrator (Akses Penuh)'
+            : (r === 'kasir' ? 'Kasir (Operasional POS)' : 'Pelanggan (Dashboard Pelanggan)'),
     })),
 );
 
@@ -39,6 +47,13 @@ const branchOptions = computed(() =>
     props.branches.map((b) => ({
         value: b.id_cabang,
         label: `${b.nama_cabang} (${b.kota})`,
+    })),
+);
+
+const customerOptions = computed(() =>
+    props.customers.map((c) => ({
+        value: c.id_pelanggan,
+        label: `${c.nama_pelanggan} ${c.no_hp ? `(${c.no_hp})` : ''} — ${c.kota || 'Umum'}`,
     })),
 );
 
@@ -54,8 +69,8 @@ const submit = () => {
         <div class="mx-auto max-w-2xl rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div class="mb-6 flex items-center justify-between border-b border-neutral-100 pb-4">
                 <div>
-                    <h2 class="text-base font-semibold text-neutral-900">Data Akun Staff</h2>
-                    <p class="text-xs text-neutral-500">Tetapkan role dan cabang operasional dengan tepat.</p>
+                    <h2 class="text-base font-semibold text-neutral-900">Data Akun Pengguna</h2>
+                    <p class="text-xs text-neutral-500">Tetapkan role (Admin, Kasir, atau Pelanggan) dan kartu RFID.</p>
                 </div>
                 <BaseButton :href="route('pengguna.index')" variant="secondary" size="sm">
                     &larr; Kembali
@@ -94,6 +109,7 @@ const submit = () => {
                     />
 
                     <BaseSelect
+                        v-if="form.role !== 'pelanggan'"
                         id="id_cabang"
                         v-model="form.id_cabang"
                         label="Penempatan Cabang"
@@ -101,6 +117,29 @@ const submit = () => {
                         placeholder="Semua Cabang / Tidak Spesifik"
                         :error="form.errors.id_cabang"
                     />
+
+                    <BaseSelect
+                        v-else
+                        id="id_pelanggan"
+                        v-model="form.id_pelanggan"
+                        label="Hubungkan Data Pelanggan (tbl_pelanggan)"
+                        :options="customerOptions"
+                        placeholder="Pilih Pelanggan Terdaftar (Opsional)"
+                        :error="form.errors.id_pelanggan"
+                    />
+                </div>
+
+                <div>
+                    <BaseInput
+                        id="rfid_uid"
+                        v-model="form.rfid_uid"
+                        label="UID Kartu RFID (Opsional)"
+                        placeholder="Contoh: 0012345678 atau A1B2C3D4"
+                        :error="form.errors.rfid_uid"
+                    />
+                    <p class="mt-1 text-xs text-neutral-500">
+                        Scan menggunakan reader atau masukkan UID manual. Kartu ini dapat digunakan oleh Admin, Kasir, maupun Pelanggan untuk login instan.
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -142,4 +181,3 @@ const submit = () => {
         </div>
     </AdminLayout>
 </template>
-

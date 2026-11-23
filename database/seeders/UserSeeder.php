@@ -33,6 +33,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => User::ROLE_KASIR,
                 'id_cabang' => $cabangUtama?->id_cabang,
+
                 'is_active' => true,
             ]
         );

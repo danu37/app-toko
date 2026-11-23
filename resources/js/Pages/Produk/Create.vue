@@ -19,10 +19,13 @@ const props = defineProps({
 
 const { isAdmin } = usePermissions();
 const imageCompressing = ref(false);
+const barcodeInputRef = ref(null);
+const barcodeScannedToast = ref(false);
 
 const form = useForm({
     id_kategori: '',
     kode_produk: '',
+    barcode: '',
     nama_produk: '',
     harga: '',
     stok: 0,
@@ -31,6 +34,18 @@ const form = useForm({
     is_featured: false,
     is_active: true,
 });
+
+const generateRandomBarcode = () => {
+    const randomDigits = Math.floor(100000000 + Math.random() * 900000000).toString();
+    form.barcode = '899' + randomDigits + '0';
+};
+
+const handleBarcodeEnter = () => {
+    barcodeScannedToast.value = true;
+    setTimeout(() => {
+        barcodeScannedToast.value = false;
+    }, 2000);
+};
 
 const categoryOptions = computed(() =>
     props.categories.map((cat) => ({
@@ -62,20 +77,62 @@ const submit = () => {
             </div>
 
             <form class="space-y-4" @submit.prevent="submit">
+                <BaseInput
+                    id="nama_produk"
+                    v-model="form.nama_produk"
+                    label="Nama Produk"
+                    required
+                    :error="form.errors.nama_produk"
+                />
+
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <BaseInput
-                        id="nama_produk"
-                        v-model="form.nama_produk"
-                        label="Nama Produk"
-                        required
-                        :error="form.errors.nama_produk"
-                    />
                     <BaseInput
                         id="kode_produk"
                         v-model="form.kode_produk"
                         label="Kode Produk / SKU (Opsional)"
+                        placeholder="Contoh: SKU-001"
                         :error="form.errors.kode_produk"
                     />
+                    <div>
+                        <div class="mb-1.5 flex items-center justify-between">
+                            <label for="barcode" class="block text-sm font-medium text-neutral-700">
+                                Barcode (Opsional)
+                            </label>
+                            <button
+                                type="button"
+                                class="text-xs font-medium text-neutral-600 underline hover:text-neutral-900"
+                                @click="generateRandomBarcode"
+                            >
+                                Acak Barcode
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <input
+                                id="barcode"
+                                ref="barcodeInputRef"
+                                v-model="form.barcode"
+                                type="text"
+                                placeholder="Scan barcode USB/BT atau ketik..."
+                                class="block w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 pr-9 font-mono text-sm text-neutral-900 placeholder:text-neutral-400 transition focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                                :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': form.errors.barcode }"
+                                @keydown.enter.prevent="handleBarcodeEnter"
+                            />
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-400">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p v-if="barcodeScannedToast" class="mt-1 text-xs font-semibold text-emerald-600">
+                            ✓ Barcode terbaca dari scanner.
+                        </p>
+                        <p v-else-if="form.errors.barcode" class="mt-1 text-xs font-medium text-red-600">
+                            {{ form.errors.barcode }}
+                        </p>
+                        <p v-else class="mt-1 text-xs text-neutral-500">
+                            Mendukung scan otomatis mesin USB/BT atau input manual.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

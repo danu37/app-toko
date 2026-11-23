@@ -13,6 +13,7 @@ class ProdukResource extends JsonResource
             'id_produk' => $this->id_produk,
             'id_kategori' => $this->id_kategori,
             'kode_produk' => $this->kode_produk,
+            'barcode' => $this->barcode,
             'nama_produk' => $this->nama_produk,
             'slug' => $this->slug,
             'harga' => (float) $this->harga,

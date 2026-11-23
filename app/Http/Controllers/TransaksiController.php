@@ -133,6 +133,7 @@ class TransaksiController extends Controller
                 'id_produk',
                 'id_kategori',
                 'kode_produk',
+                'barcode',
                 'nama_produk',
                 'slug',
                 'harga',
@@ -155,6 +156,7 @@ class TransaksiController extends Controller
             'customers' => PelangganResource::collection($customers),
             'branches' => CabangResource::collection($branches),
             'preselectedCustomerId' => $request->integer('customer') ?: null,
+            'qrisInfo' => config('store.qris'),
         ]);
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pelanggan extends Model
 {
@@ -30,6 +31,15 @@ class Pelanggan extends Model
     {
         return $this->hasMany(
             Transaksi::class,
+            'id_pelanggan',
+            'id_pelanggan'
+        );
+    }
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(
+            User::class,
             'id_pelanggan',
             'id_pelanggan'
         );

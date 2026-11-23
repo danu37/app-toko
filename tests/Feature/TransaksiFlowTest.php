@@ -392,4 +392,139 @@ class TransaksiFlowTest extends TestCase
         $pelanggan = Pelanggan::query()->where('nama_pelanggan', 'Sari POS')->firstOrFail();
         $response->assertRedirect(route('transaksi.create', ['customer' => $pelanggan->id_pelanggan]));
     }
+
+    public function test_transaksi_create_shares_product_barcode_for_cashier_pos_scanner(): void
+    {
+        $kasir = User::factory()->kasir()->create();
+        Produk::factory()->create([
+            'nama_produk' => 'Minyak Goreng 2L',
+            'barcode' => '8992001002003',
+            'is_active' => true,
+            'stok' => 20,
+        ]);
+
+        $this->actingAs($kasir)
+            ->get(route('transaksi.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Create')
+                ->has('products', fn (Assert $products) => $products
+                    ->where('0.nama_produk', 'Minyak Goreng 2L')
+                    ->where('0.barcode', '8992001002003')
+                    ->etc()
+                )
+            );
+    }
+
+    public function test_transaksi_detail_and_receipt_contain_product_barcode(): void
+    {
+        $kasir = User::factory()->kasir()->create();
+        $pelanggan = Pelanggan::factory()->create();
+        $produk = Produk::factory()->create([
+            'nama_produk' => 'Kecap Manis 550ml',
+            'barcode' => '8993001002004',
+            'harga' => 22000,
+            'stok' => 15,
+        ]);
+
+        $this->actingAs($kasir)->post(route('transaksi.store'), [
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'metode_pembayaran' => 'tunai',
+            'uang_bayar' => 50000,
+            'items' => [
+                ['id_produk' => $produk->id_produk, 'jumlah' => 2],
+            ],
+        ])->assertRedirect();
+
+        $trx = Transaksi::query()->latest('id_transaksi')->firstOrFail();
+
+        $this->assertDatabaseHas('tbl_detail_transaksi', [
+            'id_transaksi' => $trx->id_transaksi,
+            'id_produk' => $produk->id_produk,
+            'barcode' => '8993001002004',
+            'nama_produk' => 'Kecap Manis 550ml',
+        ]);
+
+        $this->actingAs($kasir)
+            ->get(route('transaksi.nota', ['transaksi' => $trx->id_transaksi, 'size' => '58mm']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Receipt')
+                ->where('transaction.detail.0.barcode', '8993001002004')
+                ->where('transaction.detail.0.nama_produk', 'Kecap Manis 550ml')
+            );
+    }
+
+    public function test_kasir_can_create_qris_transaction_with_exact_nominal_and_zero_change(): void
+    {
+        $kasir = User::factory()->kasir()->create();
+        $pelanggan = Pelanggan::factory()->create();
+        $produk = Produk::factory()->create([
+            'nama_produk' => 'Kemeja Batik Katun',
+            'harga' => 75000,
+            'stok' => 10,
+        ]);
+
+        $response = $this->actingAs($kasir)->post(route('transaksi.store'), [
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'metode_pembayaran' => 'qris',
+            'uang_bayar' => 75000,
+            'items' => [
+                ['id_produk' => $produk->id_produk, 'jumlah' => 1],
+            ],
+        ]);
+
+        $trx = Transaksi::query()->latest('id_transaksi')->firstOrFail();
+        $response->assertRedirect(route('transaksi.show', $trx));
+
+        $this->assertSame('qris', $trx->metode_pembayaran);
+        $this->assertSame('75000.00', $trx->total_belanja);
+        $this->assertSame('75000.00', $trx->uang_bayar);
+        $this->assertSame('0.00', $trx->kembalian);
+        $this->assertSame(9, $produk->fresh()->stok);
+    }
+
+    public function test_transaksi_create_shares_qris_merchant_info(): void
+    {
+        $kasir = User::factory()->kasir()->create();
+
+        $this->actingAs($kasir)
+            ->get(route('transaksi.create'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Create')
+                ->where('qrisInfo.merchant_name', 'Danu Anggo, Pakaian')
+                ->where('qrisInfo.nmid', 'ID1026645584610')
+                ->where('qrisInfo.terminal_code', 'A01')
+            );
+    }
+
+    public function test_receipt_shares_qris_store_info(): void
+    {
+        $kasir = User::factory()->kasir()->create();
+        $pelanggan = Pelanggan::factory()->create();
+        $produk = Produk::factory()->create(['harga' => 50000, 'stok' => 5]);
+
+        $trx = Transaksi::create([
+            'kode_transaksi' => 'TRX-QRIS-001',
+            'tanggal' => now()->toDateString(),
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasir->id,
+            'nama_kasir' => $kasir->name,
+            'metode_pembayaran' => 'qris',
+            'total_belanja' => 50000,
+            'uang_bayar' => 50000,
+            'kembalian' => 0,
+            'status' => 'selesai',
+        ]);
+
+        $this->actingAs($kasir)
+            ->get(route('transaksi.nota', ['transaksi' => $trx->id_transaksi]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Receipt')
+                ->where('storeInfo.qris.merchant_name', 'Danu Anggo, Pakaian')
+                ->where('storeInfo.qris.nmid', 'ID1026645584610')
+            );
+    }
 }

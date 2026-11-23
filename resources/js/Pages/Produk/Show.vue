@@ -96,7 +96,9 @@ const executeDelete = () => {
                         </div>
 
                         <div>
-                            <p class="text-xs text-neutral-500">Kode / SKU: {{ product.kode_produk || '-' }} &bull; Slug: {{ product.slug || '-' }}</p>
+                            <p class="text-xs text-neutral-500">
+                                Kode / SKU: {{ product.kode_produk || '-' }} &bull; Barcode: {{ product.barcode || '-' }} &bull; Slug: {{ product.slug || '-' }}
+                            </p>
                             <h2 class="mt-0.5 text-xl font-semibold text-neutral-900">{{ product.nama_produk }}</h2>
                         </div>
 

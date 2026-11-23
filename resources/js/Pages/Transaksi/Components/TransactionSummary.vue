@@ -4,6 +4,7 @@ import { Link } from '@inertiajs/vue3';
 import BaseButton from '@/Components/UI/BaseButton.vue';
 import BaseSelect from '@/Components/UI/BaseSelect.vue';
 import BaseInput from '@/Components/UI/BaseInput.vue';
+import QrisPaymentModal from '@/Components/Transaksi/QrisPaymentModal.vue';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useCurrency } from '@/Composables/useCurrency';
 
@@ -24,6 +25,16 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    qrisInfo: {
+        type: Object,
+        default: () => ({
+            merchant_name: 'Danu Anggo, Pakaian',
+            nmid: 'ID1026645584610',
+            terminal_code: 'A01',
+            image_url: '/images/qris/qris-danu-anggo.jpg',
+            code_url: '/images/qris/qris-code-only.png',
+        }),
+    },
     form: {
         type: Object,
         required: true,
@@ -35,6 +46,25 @@ const { can } = usePermissions();
 const { formatCurrency } = useCurrency();
 
 const customerQuery = ref('');
+const showQrisModal = ref(false);
+const qrisVerified = ref(false);
+const copiedNmid = ref(false);
+
+const copyNmid = async () => {
+    try {
+        await navigator.clipboard.writeText(props.qrisInfo?.nmid || 'ID1026645584610');
+        copiedNmid.value = true;
+        setTimeout(() => {
+            copiedNmid.value = false;
+        }, 2000);
+    } catch {}
+};
+
+const handleQrisConfirm = () => {
+    props.form.uang_bayar = props.totalAmount;
+    qrisVerified.value = true;
+    showQrisModal.value = false;
+};
 
 const filteredCustomerOptions = computed(() => {
     const q = customerQuery.value.trim().toLowerCase();
@@ -195,8 +225,118 @@ watch(
             </div>
         </div>
 
-        <!-- Input Uang Pembayaran & Hitung Kembalian -->
-        <div class="space-y-2.5 rounded-xl border border-neutral-200 bg-neutral-50/70 p-3.5">
+        <!-- KOTAK KHUSUS PEMBAYARAN QRIS (JIKA METODE = QRIS) -->
+        <div v-if="form.metode_pembayaran === 'qris'" class="space-y-3 rounded-xl border-2 border-red-200 bg-red-50/40 p-4">
+            <div class="flex items-center justify-between border-b border-red-100 pb-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-6 w-6 items-center justify-center rounded bg-red-600 text-[10px] font-black text-white">
+                        QR
+                    </span>
+                    <div>
+                        <h3 class="text-xs font-bold text-neutral-900">QRIS Standar Pembayaran Nasional</h3>
+                        <p class="text-[11px] text-neutral-500">Mendukung BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay</p>
+                    </div>
+                </div>
+                <span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-red-700">
+                    GPN
+                </span>
+            </div>
+
+            <!-- Merchant & NMID Info -->
+            <div class="space-y-1.5 rounded-lg bg-white p-3 text-xs shadow-xs">
+                <div class="flex items-center justify-between">
+                    <span class="text-neutral-500">Merchant:</span>
+                    <span class="font-bold text-neutral-900">{{ qrisInfo?.merchant_name || 'Danu Anggo, Pakaian' }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-neutral-500">NMID:</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-mono font-semibold text-neutral-800">{{ qrisInfo?.nmid || 'ID1026645584610' }}</span>
+                        <button
+                            type="button"
+                            class="text-[11px] font-medium text-red-600 hover:underline"
+                            @click="copyNmid"
+                        >
+                            {{ copiedNmid ? 'Tersalin' : 'Salin' }}
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-neutral-500">Terminal:</span>
+                    <span class="font-medium text-neutral-700">{{ qrisInfo?.terminal_code || 'A01' }}</span>
+                </div>
+            </div>
+
+            <!-- QRIS Preview & Customer Display Action -->
+            <div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
+                <button
+                    type="button"
+                    class="group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 p-1 transition hover:border-neutral-900"
+                    title="Klik untuk perbesar QRIS"
+                    @click="showQrisModal = true"
+                >
+                    <img
+                        :src="qrisInfo?.code_url || '/images/qris/qris-code-only.png'"
+                        alt="QR Code QRIS"
+                        class="h-full w-full object-contain"
+                    />
+                    <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-[9px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                        Perbesar
+                    </span>
+                </button>
+                <div class="min-w-0 flex-1 space-y-2">
+                    <div>
+                        <p class="text-xs font-semibold text-neutral-900">Scan QRIS Pelanggan</p>
+                        <p class="text-[11px] text-neutral-500 leading-snug">
+                            Tunjukkan ke pelanggan atau buka layar penuh agar pelanggan mudah memindai.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-800 shadow-2xs hover:bg-neutral-50"
+                        @click="showQrisModal = true"
+                    >
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                        <span>Buka Layar Penuh QRIS</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Konfirmasi Pembayaran QRIS Kasir -->
+            <div class="pt-1">
+                <button
+                    v-if="!qrisVerified"
+                    type="button"
+                    class="flex w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                    @click="handleQrisConfirm"
+                >
+                    <svg class="h-4 w-4 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Konfirmasi Pembayaran QRIS Diterima</span>
+                </button>
+                <div v-else class="flex items-center justify-between rounded-lg bg-emerald-100/80 px-3 py-2 text-xs font-medium text-emerald-900">
+                    <span class="flex items-center gap-1.5">
+                        <svg class="h-4 w-4 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Pembayaran QRIS Terverifikasi (Pas)</span>
+                    </span>
+                    <button
+                        type="button"
+                        class="text-[11px] text-emerald-700 underline hover:text-emerald-900"
+                        @click="qrisVerified = false"
+                    >
+                        Ubah
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Uang Pembayaran & Hitung Kembalian (Untuk Tunai / Metode Lain) -->
+        <div v-else class="space-y-2.5 rounded-xl border border-neutral-200 bg-neutral-50/70 p-3.5">
             <BaseInput
                 id="trx_uang_bayar"
                 v-model="form.uang_bayar"
@@ -269,6 +409,15 @@ watch(
         >
             {{ form.processing ? 'Memproses Transaksi...' : 'Proses Transaksi' }}
         </BaseButton>
+
+        <!-- Modal Layar Penuh QRIS untuk Pelanggan -->
+        <QrisPaymentModal
+            :show="showQrisModal"
+            :total-amount="totalAmount"
+            :qris-info="qrisInfo"
+            @close="showQrisModal = false"
+            @confirm-paid="handleQrisConfirm"
+        />
     </div>
 </template>
 

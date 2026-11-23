@@ -29,6 +29,12 @@ class UpdateProdukRequest extends FormRequest
                 'max:50',
                 Rule::unique('tbl_produk', 'kode_produk')->ignore($id, 'id_produk'),
             ],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('tbl_produk', 'barcode')->ignore($id, 'id_produk'),
+            ],
             'nama_produk' => ['required', 'string', 'max:100'],
             'harga' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'stok' => ['required', 'integer', 'min:0'],

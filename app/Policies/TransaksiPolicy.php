@@ -14,7 +14,19 @@ class TransaksiPolicy
 
     public function view(User $user, Transaksi $transaksi): bool
     {
-        return $user->is_active && $user->hasRole([User::ROLE_ADMIN, User::ROLE_KASIR]);
+        if (! $user->is_active) {
+            return false;
+        }
+
+        if ($user->hasRole([User::ROLE_ADMIN, User::ROLE_KASIR])) {
+            return true;
+        }
+
+        if ($user->isPelanggan()) {
+            return $user->id_pelanggan !== null && (int) $user->id_pelanggan === (int) $transaksi->id_pelanggan;
+        }
+
+        return false;
     }
 
     public function create(User $user): bool

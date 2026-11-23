@@ -10,7 +10,7 @@
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-2.0-9553E9?style=flat-square&logo=inertia&logoColor=white)](https://inertiajs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![MariaDB](https://img.shields.io/badge/MariaDB%20%2F%20MySQL-db--toko-003545?style=flat-square&logo=mariadb&logoColor=white)](https://mariadb.org/)
-[![PHPUnit](https://img.shields.io/badge/Tests-73%20Passed-10B981?style=flat-square&logo=checkmarx&logoColor=white)](#pengujian-dan-verifikasi)
+[![PHPUnit](https://img.shields.io/badge/Tests-102%20Passed-10B981?style=flat-square&logo=checkmarx&logoColor=white)](#pengujian-dan-verifikasi)
 
 [Fitur Utama](#fitur-utama) &bull;
 [Arsitektur](#arsitektur-sistem) &bull;
@@ -30,10 +30,10 @@
 
 ## Ringkasan Proyek
 
-**TokoKita** menggabungkan etalase toko publik bergaya editorial yang bersih dengan panel operasional internal berkecepatan tinggi untuk **Administrator** dan **Kasir**. Aplikasi dibangun di atas fondasi skema `db-toko` dengan migration non-destruktif sehingga data historis, *view*, *stored routine*, dan *trigger* legacy tetap terjaga aman.
+**TokoKita** menggabungkan etalase toko publik bergaya editorial yang bersih dengan panel operasional internal berkecepatan tinggi untuk **Administrator**, **Kasir**, serta portal mandiri bagi **Pelanggan**. Aplikasi dibangun di atas fondasi skema `db-toko` dengan migration non-destruktif sehingga data historis, *view*, *stored routine*, dan *trigger* legacy tetap terjaga aman.
 
 > [!IMPORTANT]
-> Seluruh pembatasan hak akses **Admin vs Kasir** ditegakkan penuh di sisi server melalui Middleware (`EnsureUserHasRole`), Laravel Policy, Gate, Form Request, dan perhitungan transaksi otoritatif—bukan sekadar menyembunyikan tombol pada antarmuka Vue.
+> Seluruh pembatasan hak akses **Admin vs Kasir vs Pelanggan** ditegakkan penuh di sisi server melalui Middleware (`EnsureUserHasRole`), Laravel Policy, Gate, Form Request, dan perhitungan transaksi otoritatif—bukan sekadar menyembunyikan tombol pada antarmuka Vue.
 
 ---
 
@@ -47,8 +47,15 @@
 - **Dashboard Administrator**: Total produk, kategori, pelanggan, transaksi, total pendapatan riil, grafik tren harian/bulanan, produk terlaris, ringkasan stok kritis/menipis, dan 5 transaksi terbaru.
 - **Dashboard Operasional Kasir**: Ringkasan transaksi hari ini, jumlah pelanggan dilayani, transaksi yang diproses kasir terkait, omzet harian sesuai izin `view-daily-sales`, serta pintasan cepat POS, tambah produk, dan tambah pelanggan.
 
-### 3. Sistem Transaksi POS Aman (`/transaksi/create`)
-- **Antarmuka Cepat Kasir**: Pencarian nama/SKU (mendukung `Enter` untuk SKU eksak), filter kategori, keranjang belanja dengan batas stok real-time, pemilihan metode bayar (`Tunai`, `QRIS`, `Transfer`, `Debit`), tombol cepat nominal tunai, serta kalkulasi kembalian / kurang bayar.
+### 3. Sistem Transaksi POS Aman & Integrasi QRIS Nasional (`/transaksi/create`)
+- **Integrasi Pembayaran QRIS Nasional (GPN)**:
+  - Menggunakan QRIS resmi merchant **Danu Anggo, Pakaian** (NMID: `ID1026645584610`, Terminal: `A01`).
+  - Saat kasir memilih metode bayar **QRIS**:
+    - Nominal bayar otomatis tersinkronisasi pas dengan total belanja.
+    - Menampilkan panel interaktif QRIS dengan kode QR, informasi NMID, dan tombol salin instan.
+    - Fitur **Layar Penuh QRIS Pelanggan (*Customer Facing Modal*)**: Kasir dapat membuka tampilan poster QRIS penuh beresolusi tinggi dengan nominal belanja besar agar mudah dipindai oleh pelanggan menggunakan aplikasi e-wallet (GoPay, OVO, DANA, ShopeePay, LinkAja) maupun mobile banking (BCA, Livin Mandiri, BRImo, BNI).
+    - Status verifikasi pembayaran terpadu sebelum transaksi disimpan.
+- **Antarmuka Cepat Kasir**: Pencarian nama/SKU/barcode (mendukung scanner barcode USB/Bluetooth keyboard-wedge), filter kategori, keranjang belanja dengan batas stok real-time, tombol cepat nominal tunai, serta kalkulasi kembalian / kurang bayar.
 - **Integritas Finansial & Stok Backend**:
   - Diproses atomik dalam `DB::transaction` menggunakan penguncian baris `lockForUpdate()`.
   - Harga satuan, subtotal, total akhir, dan kembalian **dihitung ulang dari database di server** (`TransaksiService`); manipulasi harga/total dari browser diabaikan atau ditolak.
@@ -57,7 +64,8 @@
 ### 4. Cetak Nota Thermal Multi-Ukuran (`/transaksi/{id}/nota`)
 - Mendukung pilihan lebar roll **40 mm (Mini)**, **58 mm (Standar)**, dan **80 mm (Lebar)** lewat `@page` dinamis dan `@media print`.
 - Menyembunyikan seluruh sidebar, header, dan tombol toolbar saat dicetak sehingga kertas thermal tidak terbuang.
-- Menampilkan **No Nota**, **Tanggal**, **Kasir** (dari snapshot transaksi atau operator aktif sebagai fallback transaksi historis), **Pelanggan**, rincian item dengan *word-wrapping* rapi, total akhir, pembayaran, dan kembalian.
+- Menampilkan **No Nota**, **Tanggal**, **Kasir**, **Pelanggan**, rincian item dengan *word-wrapping* rapi, total akhir, pembayaran, dan kembalian.
+- **Rincian Khusus QRIS pada Struk**: Untuk transaksi non-tunai QRIS, struk secara otomatis mencetak keterangan `BAYAR (QRIS GPN)`, nama merchant **Danu Anggo, Pakaian**, dan **NMID ID1026645584610**.
 
 ### 5. Auto File Compression (Maksimal 2 MB)
 - Terintegrasi pada form **Produk** dan **Kategori** melalui [`resources/js/Utils/imageCompression.js`](resources/js/Utils/imageCompression.js) dan [`app/Services/ImageCompressionService.php`](app/Services/ImageCompressionService.php).
@@ -67,8 +75,26 @@
   - UI menampilkan ukuran *Before*, *After*, persentase penghematan (*Saved %*), status proses, dan pratinjau langsung, dilengkapi validasi ulang MIME & ekstensi di server via ekstensi `gd`/`exif`.
 
 ### 6. Manajemen Master Data, Laporan & Export CSV
-- **Master Data**: Produk (dengan *soft delete* aman bagi riwayat transaksi), Kategori, Pelanggan (validasi anti-duplikasi nomor HP), Cabang, dan Pengguna + Pengaturan Role.
+- **Master Data**: Produk (dengan *soft delete* aman bagi riwayat transaksi dan barcode scanner unik), Kategori, Pelanggan (validasi anti-duplikasi nomor HP), Cabang, dan Pengguna + Pengaturan Role.
 - **Laporan & Rekap (`/laporan`)**: Penjualan, rekap harian, metode pembayaran, performa cabang & kasir, produk terlaris, performa pelanggan, filter rentang tanggal/kasir/pelanggan/cabang, tampilan cetak laporan, serta **Export CSV** ber-BOM UTF-8 yang aman dari *formula injection*.
+
+### 7. Sistem Login RFID Multi-Role & Portal Dashboard Pelanggan
+- **Tap Kartu RFID Langsung dari Beranda / Storefront (`/`)**:
+  - Pengguna (Admin, Kasir, maupun Pelanggan) dapat menempelkan kartu RFID kapan saja langsung di halaman **Home** maupun katalog storefront tanpa harus membuka menu login terlebih dahulu.
+  - Listener pintar keyboard-wedge global (`useRfidStoreScanner`) menangkap pembacaan RFID reader berkecepatan tinggi, memfilter pengetikan manual di kotak pencarian, menampilkan overlay animasi pemrosesan instan (*"Memverifikasi Kartu RFID..."*), dan langsung mengarahkan pengguna ke dashboard sesuai perannya.
+- **Autentikasi Cepat Multi-Role (`/login`)**:
+  - Sistem login RFID yang mendukung **Admin**, **Kasir**, maupun **Pelanggan** menggunakan mesin **RFID Reader USB / Bluetooth HID (*keyboard-wedge*)** atau input UID manual.
+  - Pengalihan cerdas sesuai role:
+    - **Admin** &rarr; Dashboard Eksekutif Admin (`/dashboard`).
+    - **Kasir** &rarr; Dashboard Operasional Kasir (`/dashboard`).
+    - **Pelanggan** &rarr; Dashboard Mandiri Pelanggan (`/pelanggan/dashboard`).
+  - Proteksi server ketat: rate limiting (5 attempt/menit), session regeneration, pesan penolakan *"Kartu RFID tidak dikenali"* bila tidak terdaftar, serta blokir kartu/akun yang dinonaktifkan.
+- **Portal Dashboard Pelanggan (`/pelanggan/dashboard`)**:
+  - Terintegrasi langsung dengan data master `tbl_pelanggan` via relasi `users.id_pelanggan`.
+  - Menampilkan profil pelanggan, status kartu RFID, ringkasan belanja (total transaksi & akumulasi nominal), serta tabel riwayat belanja dengan akses cetak struk belanjaan pribadi.
+- **Manajemen Kartu RFID Terpusat (`/pengguna`)**:
+  - Arsitektur tabel khusus `rfid_cards` (`user_id`, `uid`, `status`, `registered_at`, `last_used_at`).
+  - Admin dapat mendaftarkan kartu RFID baru, mengubah nomor UID, mengaktifkan/menonaktifkan kartu secara instan, serta menghapus/mencabut kartu yang hilang dengan dialog konfirmasi aman.
 
 ---
 
@@ -127,19 +153,21 @@ app-toko/
 
 ## Role dan Hak Akses
 
-| Modul / Fitur | Admin | Kasir | Penegakan Server |
-| :--- | :---: | :---: | :--- |
-| Storefront Publik (`/`, `/shop`) | Ya | Ya | Route publik |
-| Dashboard Ringkasan Eksekutif & Grafik | Ya | Operasional | Role check + Gate `view-daily-sales` |
-| Lihat & Tambah Produk Baru | Ya | Ya | `ProdukPolicy::viewAny` / `create` |
-| Edit & Hapus Produk | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `ProdukPolicy` |
-| Lihat & Tambah Pelanggan Baru | Ya | Ya | `PelangganPolicy::viewAny` / `create` |
-| Edit & Hapus Pelanggan | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & `PelangganPolicy` |
-| Lihat, Riwayat & Buat Transaksi POS | Ya | Ya | `TransaksiPolicy` & Gate `view-transaction-history` |
-| Cetak Nota Thermal (`40/58/80 mm`) | Ya | Ya | `TransaksiPolicy::view` |
-| Kategori & Cabang (Lihat / Kelola) | Ya (CRUD) | Read-only (`403` mutasi) | Middleware `role:admin` |
-| Laporan Penjualan & Export CSV | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `view-reports` |
-| Manajemen Pengguna & Pengaturan | **Ya** | **Tidak (`403`)** | Middleware `role:admin` & Gate `manage-settings` |
+| Modul / Fitur | Admin | Kasir | Pelanggan | Penegakan Server |
+| :--- | :---: | :---: | :---: | :--- |
+| Storefront Publik (`/`, `/shop`) | Ya | Ya | Ya | Route publik |
+| Dashboard Ringkasan Eksekutif & Grafik | Ya | Operasional | **Tidak (`403`)** | Middleware `role:admin,kasir` |
+| Portal Dashboard Pelanggan & Riwayat Belanja | **Tidak (`403`)** | **Tidak (`403`)** | Ya | Middleware `role:pelanggan` |
+| Lihat & Tambah Produk Baru | Ya | Ya | **Tidak (`403`)** | Middleware `role:admin,kasir` & `ProdukPolicy` |
+| Edit & Hapus Produk | **Ya** | **Tidak (`403`)** | **Tidak (`403`)** | Middleware `role:admin` & `ProdukPolicy` |
+| Lihat & Tambah Master Pelanggan | Ya | Ya | **Tidak (`403`)** | Middleware `role:admin,kasir` & `PelangganPolicy` |
+| Edit & Hapus Master Pelanggan | **Ya** | **Tidak (`403`)** | **Tidak (`403`)** | Middleware `role:admin` & `PelangganPolicy` |
+| POS & Pembuatan Transaksi Kasir | Ya | Ya | **Tidak (`403`)** | Middleware `role:admin,kasir` & `TransaksiPolicy` |
+| Cetak Nota Transaksi Pribadi | Ya | Ya | Ya (Transaksi Milik Sendiri) | `TransaksiPolicy::view` |
+| Kategori & Cabang (Lihat / Kelola) | Ya (CRUD) | Read-only (`403` mutasi) | **Tidak (`403`)** | Middleware `role:admin` |
+| Laporan Penjualan & Export CSV | **Ya** | **Tidak (`403`)** | **Tidak (`403`)** | Middleware `role:admin` & Gate `view-reports` |
+| Manajemen Pengguna & Pengaturan Sistem | **Ya** | **Tidak (`403`)** | **Tidak (`403`)** | Middleware `role:admin` & Gate `manage-settings` |
+| Login Cepat Kartu RFID (Reader Mesin / Keyboard) | **Ya** | **Ya** | **Ya** | `RfidLoginRequest` & multi-role redirect |
 
 > [!NOTE]
 > Registrasi publik (`/register`) dinonaktifkan. Penambahan akun staf serta perubahan role hanya dapat dilakukan oleh **Administrator**, dan sistem menolak upaya admin menurunkan/menonaktifkan akunnya sendiri.
@@ -249,14 +277,22 @@ php artisan view:cache
 
 ---
 
-## Panduan Transaksi POS
+## Panduan Transaksi POS & Barcode Scanner
 
 1. Login sebagai **Admin** atau **Kasir**, lalu buka menu **Transaksi Baru** (`/transaksi/create`).
-2. Pilih **Pelanggan** (atau gunakan pintasan **+ Pelanggan Baru** jika belum terdaftar) dan **Cabang**.
-3. Cari barang lewat nama atau kode SKU (tekan `Enter` untuk SKU unik) lalu klik kartu produk agar masuk ke keranjang.
-4. Sesuaikan **Jumlah Barang** dengan tombol `-` / `+` atau ketik langsung sesuai stok tersedia.
-5. Pilih metode pembayaran (`Tunai`, `QRIS`, `Transfer`, atau `Debit`) dan masukkan **Uang Pembayaran** untuk melihat kembalian instan.
-6. Klik **Proses Transaksi**. Server memvalidasi stok, menghitung ulang subtotal/total akhir, menyimpan snapshot produk & `nama_kasir`, lalu membuka halaman detail transaksi siap cetak.
+2. **Scanner Barcode Otomatis**:
+   - Kolom pemindaian barcode langsung aktif (`autofocus`) dengan status hijau **Scanner Siap**.
+   - Arahkan mesin barcode scanner USB / Bluetooth ke barcode kemasan barang (scanner keyboard-wedge dengan akhiran `Enter`).
+   - Tekan shortcut **F2** kapan pun dari mana saja di layar untuk mengembalikan fokus instan ke barcode scanner.
+   - Jika barcode terdaftar dan stok mencukupi, barang otomatis masuk ke keranjang kasir (kuantitas bertambah +1 jika sudah ada di keranjang) disertai notifikasi sukses.
+   - Jika barcode tidak terdaftar atau stok habis, sistem menampilkan notifikasi kesalahan/peringatan tanpa merusak keranjang belanja.
+   - Kolom input scanner dibersihkan otomatis dan fokus langsung dipertahankan untuk scan barang berikutnya berturut-turut.
+3. **Pencarian Manual & Keranjang**:
+   - Kasir tetap dapat mencari barang lewat nama, kode SKU, atau kategori, lalu klik kartu produk untuk memasukkan ke keranjang.
+4. Pilih **Pelanggan** (atau gunakan pintasan **+ Pelanggan Baru** jika belum terdaftar) dan **Cabang**.
+5. Sesuaikan **Jumlah Barang** dengan tombol `-` / `+` atau ketik langsung sesuai batas stok fisik tersedia.
+6. Pilih metode pembayaran (`Tunai`, `QRIS`, `Transfer`, atau `Debit`) dan masukkan **Uang Pembayaran** untuk melihat kembalian instan.
+7. Klik **Proses Transaksi**. Server memvalidasi stok, menghitung ulang subtotal/total akhir secara atomik, menyimpan snapshot produk & `nama_kasir`, lalu membuka halaman detail transaksi siap cetak.
 
 ---
 
@@ -282,7 +318,7 @@ Halaman `/transaksi/{id}/nota` menyediakan isolasi cetak khusus via `@media prin
 Aplikasi menggunakan database terisolasi `db_toko_test` (lihat [`phpunit.xml`](phpunit.xml)) untuk mencegah gangguan terhadap database operasional `db-toko`.
 
 ```bash
-# Menjalankan seluruh test suite PHPUnit (73 tests)
+# Menjalankan seluruh test suite PHPUnit (95 tests)
 php artisan test
 
 # Memeriksa standar format kode PHP (Laravel Pint)
@@ -295,7 +331,8 @@ npm run build
 <details>
 <summary><strong>Daftar Cakupan Suite Pengujian Otomatis</strong></summary>
 
-- `tests/Feature/Auth/*` — Login, logout, validasi, rate limit, registrasi publik nonaktif, profil & password
+- `tests/Feature/Auth/*` — Login credential, logout, validasi, rate limit, registrasi publik nonaktif, profil & password
+- [`tests/Feature/Auth/RfidAuthenticationTest.php`](tests/Feature/Auth/RfidAuthenticationTest.php) — Autentikasi Admin via RFID card reader, proteksi rate limit, penolakan kartu kasir/kartu nonaktif, normalisasi UID, serta manajemen & pencabutan UID staf
 - [`tests/Feature/RoleAuthenticationAndInertiaTest.php`](tests/Feature/RoleAuthenticationAndInertiaTest.php) — Proteksi guest, shared Inertia permissions, RBAC admin vs kasir
 - [`tests/Feature/ProdukAuthorizationTest.php`](tests/Feature/ProdukAuthorizationTest.php) — Akses produk kasir (`create`/`view`) vs penolakan `403` untuk `edit`/`delete`
 - [`tests/Feature/PelangganAuthorizationTest.php`](tests/Feature/PelangganAuthorizationTest.php) — Akses pelanggan & penolakan duplikasi nomor HP

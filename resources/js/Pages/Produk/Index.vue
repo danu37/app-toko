@@ -101,7 +101,7 @@ const executeDelete = () => {
             <div class="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
                 <form class="flex flex-wrap items-center gap-2" @submit.prevent="applyFilters">
                     <div class="w-full sm:w-60">
-                        <SearchInput v-model="search" placeholder="Cari nama atau kode produk..." @search="applyFilters" />
+                        <SearchInput v-model="search" placeholder="Cari nama, SKU, atau barcode..." @search="applyFilters" />
                     </div>
                     <div class="w-full sm:w-44">
                         <BaseSelect
@@ -161,7 +161,16 @@ const executeDelete = () => {
                             </div>
                             <div>
                                 <div class="font-medium text-neutral-900">{{ item.nama_produk }}</div>
-                                <div class="text-xs text-neutral-500">{{ item.kode_produk || 'Tanpa SKU' }}</div>
+                                <div class="flex flex-wrap items-center gap-1.5 font-mono text-xs text-neutral-500">
+                                    <span v-if="item.barcode" class="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-700">
+                                        <svg class="h-3 w-3 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                        </svg>
+                                        {{ item.barcode }}
+                                    </span>
+                                    <span v-if="item.kode_produk">{{ item.kode_produk }}</span>
+                                    <span v-else-if="!item.barcode">Tanpa SKU / Barcode</span>
+                                </div>
                             </div>
                         </div>
                     </td>

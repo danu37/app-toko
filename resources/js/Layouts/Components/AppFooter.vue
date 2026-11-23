@@ -45,6 +45,11 @@ const { user } = usePermissions();
                         <p><span class="font-medium text-neutral-800">Jam Layanan:</span> Setiap Hari, 08.00 &ndash; 21.00 WIB</p>
                         <p><span class="font-medium text-neutral-800">Email Layanan:</span> halo@tokokita.local</p>
                     </div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-bold text-white">QRIS</span>
+                        <span class="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">GPN</span>
+                        <span class="text-[11px] text-neutral-500">Pembayaran Non-Tunai Danu Anggo, Pakaian</span>
+                    </div>
                 </div>
 
                 <!-- Navigasi -->

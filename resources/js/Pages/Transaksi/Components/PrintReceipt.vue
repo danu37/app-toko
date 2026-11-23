@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onUnmounted, watch } from 'vue';
+import VisualBarcode from '@/Components/UI/VisualBarcode.vue';
 import { useCurrency } from '@/Composables/useCurrency';
 import { useDate } from '@/Composables/useDate';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -194,7 +195,23 @@ const cashierName = computed(() => {
                 <span class="ml-auto whitespace-nowrap">{{ formatCurrency(transaction.total_belanja) }}</span>
             </div>
 
-            <template v-if="transaction.uang_bayar !== null && transaction.uang_bayar !== undefined">
+            <template v-if="String(transaction.metode_pembayaran || '').toLowerCase() === 'qris'">
+                <div class="flex flex-wrap items-baseline justify-between gap-x-2 pt-0.5 text-[0.94em]">
+                    <span class="font-bold">BAYAR (QRIS GPN)</span>
+                    <span class="ml-auto whitespace-nowrap font-bold">{{ formatCurrency(transaction.uang_bayar || transaction.total_belanja) }}</span>
+                </div>
+                <div class="space-y-0.5 border-t border-dotted border-neutral-300 pt-1 text-[0.84em] text-neutral-600 print:text-black">
+                    <div class="flex justify-between gap-2">
+                        <span>Merchant</span>
+                        <span class="text-right font-semibold">{{ storeInfo?.qris?.merchant_name || 'Danu Anggo, Pakaian' }}</span>
+                    </div>
+                    <div class="flex justify-between gap-2">
+                        <span>NMID</span>
+                        <span class="font-mono text-right">{{ storeInfo?.qris?.nmid || 'ID1026645584610' }}</span>
+                    </div>
+                </div>
+            </template>
+            <template v-else-if="transaction.uang_bayar !== null && transaction.uang_bayar !== undefined">
                 <div class="flex flex-wrap items-baseline justify-between gap-x-2 pt-0.5 text-[0.94em]">
                     <span class="uppercase">Bayar ({{ transaction.metode_pembayaran ?? 'TUNAI' }})</span>
                     <span class="ml-auto whitespace-nowrap">{{ formatCurrency(transaction.uang_bayar) }}</span>
@@ -207,6 +224,18 @@ const cashierName = computed(() => {
             <div v-else class="flex flex-wrap items-baseline justify-between gap-x-2 pt-0.5 text-[0.94em]">
                 <span>Metode</span>
                 <span class="ml-auto uppercase">{{ transaction.metode_pembayaran ?? 'TUNAI' }}</span>
+            </div>
+        </div>
+
+        <!-- BARCODE NOMOR NOTA / TRANSAKSI -->
+        <div class="border-b border-dashed border-neutral-400 py-2.5 text-center print:border-black">
+            <div class="mx-auto max-w-[190px]">
+                <VisualBarcode
+                    :value="kodeNota"
+                    :height="28"
+                    :show-text="true"
+                    text-class="text-[9px]"
+                />
             </div>
         </div>
 

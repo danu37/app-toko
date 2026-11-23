@@ -60,14 +60,16 @@ const roleForm = useForm({
 const roleFilterOptions = computed(() =>
     props.roles.map((r) => ({
         value: r,
-        label: r === 'admin' ? 'Admin' : 'Kasir',
+        label: r === 'admin' ? 'Admin' : (r === 'kasir' ? 'Kasir' : 'Pelanggan'),
     })),
 );
 
 const roleSelectOptions = computed(() =>
     props.roles.map((r) => ({
         value: r,
-        label: r === 'admin' ? 'Administrator (Akses Penuh)' : 'Kasir (Operasional)',
+        label: r === 'admin'
+            ? 'Administrator (Akses Penuh)'
+            : (r === 'kasir' ? 'Kasir (Operasional)' : 'Pelanggan (Dashboard Pelanggan)'),
     })),
 );
 
@@ -153,12 +155,14 @@ const executeDelete = () => {
 };
 
 const roleMatrix = [
-    { feature: 'Dashboard Operasional & POS Transaksi', admin: 'Akses Penuh', kasir: 'Diizinkan' },
-    { feature: 'Lihat & Tambah Produk / Pelanggan', admin: 'Diizinkan', kasir: 'Diizinkan' },
-    { feature: 'Edit & Hapus Produk / Pelanggan', admin: 'Diizinkan', kasir: 'Ditolak (HTTP 403)' },
-    { feature: 'Kelola Kategori & Cabang', admin: 'Diizinkan', kasir: 'Lihat Saja (Mutasi 403)' },
-    { feature: 'Laporan Penjualan, Transaksi & Rekap Pendapatan', admin: 'Diizinkan', kasir: 'Ditolak (HTTP 403)' },
-    { feature: 'Manajemen Pengguna, Pengaturan Role & Sistem', admin: 'Diizinkan', kasir: 'Ditolak (HTTP 403)' },
+    { feature: 'Dashboard Eksekutif & Laporan Omzet Toko', admin: 'Akses Penuh', kasir: 'Ditolak (HTTP 403)', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'POS Kasir & Checkout Transaksi Toko', admin: 'Diizinkan', kasir: 'Diizinkan', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'Lihat & Tambah Produk / Master Pelanggan', admin: 'Diizinkan', kasir: 'Diizinkan', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'Edit & Hapus Produk / Master Pelanggan', admin: 'Diizinkan', kasir: 'Ditolak (HTTP 403)', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'Kelola Kategori & Cabang Toko', admin: 'Diizinkan', kasir: 'Lihat Saja (Mutasi 403)', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'Manajemen Pengguna & Pengaturan Sistem', admin: 'Diizinkan', kasir: 'Ditolak (HTTP 403)', pelanggan: 'Ditolak (HTTP 403)' },
+    { feature: 'Dashboard Pelanggan & Riwayat Belanja Pribadi', admin: 'Akses Penuh', kasir: 'Ditolak (HTTP 403)', pelanggan: 'Diizinkan' },
+    { feature: 'Login Cepat Kartu RFID (Reader Mesin / Keyboard)', admin: 'Diizinkan', kasir: 'Diizinkan', pelanggan: 'Diizinkan' },
 ];
 </script>
 
@@ -169,13 +173,15 @@ const roleMatrix = [
         <div class="space-y-6">
             <!-- Role Stats -->
             <div
-                class="enter-stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                class="enter-stagger-grid grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
                 style="--stagger-base: 0ms"
             >
                 <StatCard label="Total Akun" :value="roleStats.total ?? 0" tone="neutral" />
-                <StatCard label="Administrator" :value="roleStats.admin ?? 0" description="Akses penuh sistem" tone="sky" />
-                <StatCard label="Kasir" :value="roleStats.kasir ?? 0" description="Operasional harian" tone="emerald" />
-                <StatCard label="Akun Aktif" :value="roleStats.aktif ?? 0" description="Dapat mengakses aplikasi" tone="amber" />
+                <StatCard label="Administrator" :value="roleStats.admin ?? 0" description="Akses penuh" tone="sky" />
+                <StatCard label="Kasir" :value="roleStats.kasir ?? 0" description="Operasional POS" tone="emerald" />
+                <StatCard label="Pelanggan" :value="roleStats.pelanggan ?? 0" description="Portal belanja" tone="amber" />
+                <StatCard label="Akun Aktif" :value="roleStats.aktif ?? 0" description="Dapat login" tone="emerald" />
+                <StatCard label="Kartu RFID" :value="roleStats.rfid ?? 0" description="Terdaftar" tone="neutral" />
             </div>
 
             <!-- Search & Filters -->
@@ -184,7 +190,7 @@ const roleMatrix = [
                     <div class="w-full sm:w-64">
                         <SearchInput
                             v-model="search"
-                            placeholder="Cari nama atau email..."
+                            placeholder="Cari nama, email, atau UID RFID..."
                             @search="applyFilters"
                         />
                     </div>
@@ -242,14 +248,38 @@ const roleMatrix = [
                             </span>
                         </div>
                         <div class="text-xs text-neutral-500">{{ item.email }}</div>
+                        <div class="mt-1 flex items-center gap-1.5">
+                            <span
+                                v-if="item.rfid_uid"
+                                class="inline-flex items-center gap-1.5 rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[11px] text-neutral-700 font-medium"
+                                :title="`UID RFID: ${item.rfid_uid} (Status: ${item.rfid_status || 'aktif'})`"
+                            >
+                                <span
+                                    class="h-1.5 w-1.5 rounded-full"
+                                    :class="item.rfid_status === 'nonaktif' ? 'bg-red-500' : 'bg-emerald-500'"
+                                />
+                                {{ item.rfid_uid }}
+                                <span v-if="item.rfid_status === 'nonaktif'" class="text-[10px] font-sans font-semibold text-red-600">
+                                    (Nonaktif)
+                                </span>
+                            </span>
+                            <span v-else class="text-[11px] text-neutral-400">
+                                Tanpa RFID
+                            </span>
+                        </div>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3">
-                        <BaseBadge :variant="item.role === 'admin' ? 'dark' : 'success'">
-                            {{ item.role === 'admin' ? 'Admin' : 'Kasir' }}
+                        <BaseBadge :variant="item.role === 'admin' ? 'dark' : (item.role === 'kasir' ? 'success' : 'info')">
+                            {{ item.role === 'admin' ? 'Admin' : (item.role === 'kasir' ? 'Kasir' : 'Pelanggan') }}
                         </BaseBadge>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-neutral-700">
-                        {{ item.cabang?.nama_cabang ?? 'Semua Cabang' }}
+                        <span v-if="item.role === 'pelanggan'">
+                            {{ item.pelanggan ? `${item.pelanggan.nama_pelanggan} (${item.pelanggan.kota || 'Umum'})` : 'Pelanggan Toko' }}
+                        </span>
+                        <span v-else>
+                            {{ item.cabang?.nama_cabang ?? 'Semua Cabang' }}
+                        </span>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3">
                         <BaseBadge :variant="item.is_active ? 'info' : 'danger'">
@@ -300,6 +330,7 @@ const roleMatrix = [
                                 <th class="px-4 py-2.5 font-semibold uppercase tracking-wider text-neutral-600">Fitur / Modul</th>
                                 <th class="px-4 py-2.5 font-semibold uppercase tracking-wider text-neutral-600">Admin</th>
                                 <th class="px-4 py-2.5 font-semibold uppercase tracking-wider text-neutral-600">Kasir</th>
+                                <th class="px-4 py-2.5 font-semibold uppercase tracking-wider text-neutral-600">Pelanggan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -311,6 +342,11 @@ const roleMatrix = [
                                 <td class="px-4 py-2.5">
                                     <BaseBadge :variant="row.kasir.includes('403') ? 'danger' : 'success'">
                                         {{ row.kasir }}
+                                    </BaseBadge>
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    <BaseBadge :variant="row.pelanggan.includes('403') ? 'danger' : 'info'">
+                                        {{ row.pelanggan }}
                                     </BaseBadge>
                                 </td>
                             </tr>

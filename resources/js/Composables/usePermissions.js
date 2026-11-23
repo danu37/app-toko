@@ -8,6 +8,7 @@ export function usePermissions() {
     const can = computed(() => page.props.auth?.can ?? {});
     const isAdmin = computed(() => Boolean(can.value.isAdmin));
     const isKasir = computed(() => Boolean(can.value.isKasir));
+    const isPelanggan = computed(() => Boolean(can.value.isPelanggan));
 
     const hasPermission = (permission) => Boolean(can.value?.[permission]);
 
@@ -16,6 +17,7 @@ export function usePermissions() {
         can,
         isAdmin,
         isKasir,
+        isPelanggan,
         hasPermission,
     };
 }

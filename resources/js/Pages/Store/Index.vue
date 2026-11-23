@@ -67,9 +67,18 @@ const productLabel = (product) => {
         <section class="border-b border-neutral-200/80 bg-stone-50">
             <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-14 lg:px-8 lg:py-20">
                 <div class="enter-stagger space-y-6 lg:col-span-6">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
-                        Katalog Kurasi Harian
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
+                            Katalog Kurasi Harian
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 bg-white/90 px-3 py-1 text-[11px] font-medium text-neutral-600 shadow-xs backdrop-blur-sm">
+                            <span class="relative flex h-2 w-2">
+                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                            <span>Tap Kartu RFID untuk Login Instan</span>
+                        </div>
                     </div>
 
                     <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl lg:leading-[1.12]">

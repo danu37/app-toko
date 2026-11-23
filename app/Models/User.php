@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -19,9 +20,12 @@ class User extends Authenticatable
 
     public const ROLE_KASIR = 'kasir';
 
+    public const ROLE_PELANGGAN = 'pelanggan';
+
     public const ROLES = [
         self::ROLE_ADMIN,
         self::ROLE_KASIR,
+        self::ROLE_PELANGGAN,
     ];
 
     /**
@@ -34,7 +38,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'rfid_uid',
         'id_cabang',
+        'id_pelanggan',
         'is_active',
     ];
 
@@ -72,6 +78,11 @@ class User extends Authenticatable
         return $this->role === self::ROLE_KASIR;
     }
 
+    public function isPelanggan(): bool
+    {
+        return $this->role === self::ROLE_PELANGGAN;
+    }
+
     public function hasRole(string|array $roles): bool
     {
         $roles = is_array($roles) ? $roles : [$roles];
@@ -82,6 +93,23 @@ class User extends Authenticatable
     public function cabang(): BelongsTo
     {
         return $this->belongsTo(Cabang::class, 'id_cabang', 'id_cabang');
+    }
+
+    public function pelanggan(): BelongsTo
+    {
+        return $this->belongsTo(Pelanggan::class, 'id_pelanggan', 'id_pelanggan');
+    }
+
+    public function rfidCards(): HasMany
+    {
+        return $this->hasMany(RfidCard::class, 'user_id', 'id');
+    }
+
+    public function activeRfidCard(): HasOne
+    {
+        return $this->hasOne(RfidCard::class, 'user_id', 'id')
+            ->where('status', RfidCard::STATUS_AKTIF)
+            ->latestOfMany();
     }
 
     public function transaksi(): HasMany

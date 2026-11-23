@@ -24,6 +24,7 @@ class Produk extends Model
     protected $fillable = [
         'id_kategori',
         'kode_produk',
+        'barcode',
         'nama_produk',
         'slug',
         'harga',
@@ -75,7 +76,8 @@ class Produk extends Model
 
         return $query->where(function (Builder $q) use ($like) {
             $q->where('nama_produk', 'like', $like)
-                ->orWhere('kode_produk', 'like', $like);
+                ->orWhere('kode_produk', 'like', $like)
+                ->orWhere('barcode', 'like', $like);
         });
     }
 }

@@ -30,10 +30,13 @@ const headers = [
     <BaseTable v-else :headers="headers">
         <tr v-for="row in details" :key="row.id_detail" class="hover:bg-neutral-50/70">
             <td class="px-4 py-3 font-medium text-neutral-900">
-                {{ row.nama_produk }}
-                <span v-if="row.produk?.kode_produk" class="ml-1 text-xs text-neutral-400">
-                    ({{ row.produk.kode_produk }})
-                </span>
+                <div class="font-semibold text-neutral-900">{{ row.nama_produk }}</div>
+                <div v-if="row.barcode || row.produk?.barcode" class="font-mono text-xs text-neutral-500">
+                    Barcode: {{ row.barcode || row.produk?.barcode }}
+                </div>
+                <div v-else-if="row.produk?.kode_produk" class="font-mono text-xs text-neutral-400">
+                    SKU: {{ row.produk.kode_produk }}
+                </div>
             </td>
             <td class="whitespace-nowrap px-4 py-3 text-right text-neutral-700">
                 {{ formatCurrency(row.harga) }}

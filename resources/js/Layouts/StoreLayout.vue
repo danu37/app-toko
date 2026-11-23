@@ -3,8 +3,11 @@ import { nextTick, onUnmounted, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import BaseDropdown from '@/Components/UI/BaseDropdown.vue';
 import AppFooter from '@/Layouts/Components/AppFooter.vue';
+import ToastNotification from '@/Components/Feedback/ToastNotification.vue';
+import RfidScanFeedback from '@/Components/Store/RfidScanFeedback.vue';
 import { usePermissions } from '@/Composables/usePermissions';
 import { usePageEntrance } from '@/Composables/usePageEntrance';
+import { useRfidStoreScanner } from '@/Composables/useRfidStoreScanner';
 
 defineProps({
     branches: {
@@ -19,6 +22,8 @@ defineProps({
 
 const { user } = usePermissions();
 const { animateChrome } = usePageEntrance('store');
+const { rfidState, dismissFeedback } = useRfidStoreScanner();
+
 const mobileMenuOpen = ref(false);
 const searchOpen = ref(false);
 const searchInputRef = ref(null);
@@ -55,6 +60,9 @@ const submitSearch = () => {
 
 <template>
     <div class="flex min-h-screen flex-col bg-white text-neutral-900">
+        <!-- Floating RFID Instant Feedback -->
+        <RfidScanFeedback :rfid-state="rfidState" @close="dismissFeedback" />
+
         <div
             v-if="navigating"
             class="fixed inset-x-0 top-0 z-50 h-0.5 animate-pulse bg-neutral-900"
@@ -155,8 +163,20 @@ const submitSearch = () => {
                     </a>
                 </nav>
 
-                <!-- Right: Search Icon & Login -->
+                <!-- Right: Search Icon, RFID Indicator & Login -->
                 <div class="hidden items-center gap-2.5 md:flex">
+                    <div
+                        v-if="!user"
+                        class="hidden items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs text-neutral-600 lg:inline-flex"
+                        title="Sistem siap membaca kartu RFID: Tempelkan kartu kapan saja untuk login instan"
+                    >
+                        <span class="relative flex h-2 w-2">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                        </span>
+                        <span class="font-medium text-neutral-700">Scan RFID Siap</span>
+                    </div>
+
                     <button
                         type="button"
                         class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900"
@@ -171,7 +191,7 @@ const submitSearch = () => {
 
                     <Link
                         v-if="user"
-                        :href="route('dashboard')"
+                        :href="user.role === 'pelanggan' ? route('pelanggan.dashboard') : route('dashboard')"
                         class="inline-flex items-center rounded-full bg-neutral-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-neutral-800"
                     >
                         Dashboard
@@ -299,9 +319,20 @@ const submitSearch = () => {
                     </Link>
                 </div>
 
+                <div v-if="!user" class="mt-3 flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                        </span>
+                        <span class="font-medium text-neutral-800">Scan RFID Siap</span>
+                    </div>
+                    <span class="text-[11px] text-neutral-500">Tempelkan kartu</span>
+                </div>
+
                 <div class="mt-4 border-t border-neutral-100 pt-4">
                     <Link
-                        :href="user ? route('dashboard') : route('login')"
+                        :href="user ? (user.role === 'pelanggan' ? route('pelanggan.dashboard') : route('dashboard')) : route('login')"
                         class="block w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-center text-sm font-semibold text-white"
                         @click="mobileMenuOpen = false"
                     >
@@ -312,6 +343,9 @@ const submitSearch = () => {
         </header>
 
         <main class="flex-1">
+            <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+                <ToastNotification />
+            </div>
             <slot />
         </main>
 

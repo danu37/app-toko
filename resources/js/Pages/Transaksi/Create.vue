@@ -24,6 +24,10 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    qrisInfo: {
+        type: Object,
+        default: () => null,
+    },
 });
 
 const { user, isAdmin } = usePermissions();
@@ -139,6 +143,7 @@ const submitTransaction = () => {
                         :total-amount="totalAmount"
                         :customers="customers"
                         :branches="branches"
+                        :qris-info="qrisInfo"
                         :form="form"
                         @submit="submitTransaction"
                     />

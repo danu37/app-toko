@@ -30,6 +30,7 @@ class PengaturanController extends Controller
                 'timezone' => config('app.timezone'),
                 'locale' => config('app.locale'),
                 'storage_linked' => file_exists(public_path('storage')),
+                'qris' => config('store.qris'),
                 'stats' => [
                     'users' => (int) ($counts->users_count ?? 0),
                     'branches' => (int) ($counts->branches_count ?? 0),

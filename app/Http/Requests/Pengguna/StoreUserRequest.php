@@ -21,7 +21,9 @@ class StoreUserRequest extends FormRequest
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => ['required', 'string', Rule::in(User::ROLES)],
+            'rfid_uid' => ['nullable', 'string', 'max:100', 'unique:users,rfid_uid', 'unique:rfid_cards,uid'],
             'id_cabang' => ['nullable', 'integer', 'exists:tbl_cabang,id_cabang'],
+            'id_pelanggan' => ['nullable', 'integer', 'exists:tbl_pelanggan,id_pelanggan'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

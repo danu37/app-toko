@@ -16,6 +16,7 @@ class DetailTransaksiResource extends JsonResource
             'id_detail' => $this->id_detail,
             'id_transaksi' => $this->id_transaksi,
             'id_produk' => $this->id_produk,
+            'barcode' => $this->barcode ?? ($this->relationLoaded('produk') ? $this->produk?->barcode : null),
             'nama_produk' => $this->nama_produk,
             'jumlah' => $jumlah,
             'harga' => $harga,

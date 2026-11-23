@@ -59,6 +59,7 @@ class TransaksiService
                 $detailPayloads[] = [
                     'index' => $index,
                     'id_produk' => $produk->id_produk,
+                    'barcode' => $produk->barcode,
                     'nama_produk' => $produk->nama_produk,
                     'jumlah' => $jumlah,
                     'harga' => $hargaSatuan,
@@ -121,6 +122,7 @@ class TransaksiService
                 DetailTransaksi::create([
                     'id_transaksi' => $transaksi->id_transaksi,
                     'id_produk' => $detail['id_produk'],
+                    'barcode' => $detail['barcode'],
                     'nama_produk' => $detail['nama_produk'],
                     'jumlah' => $detail['jumlah'],
                     'harga' => $detail['harga'],

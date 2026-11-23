@@ -34,7 +34,15 @@ class UpdateUserRequest extends FormRequest
             ],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'role' => ['required', 'string', Rule::in(User::ROLES)],
+            'rfid_uid' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('users', 'rfid_uid')->ignore($id),
+                Rule::unique('rfid_cards', 'uid')->whereNot('user_id', $id),
+            ],
             'id_cabang' => ['nullable', 'integer', 'exists:tbl_cabang,id_cabang'],
+            'id_pelanggan' => ['nullable', 'integer', 'exists:tbl_pelanggan,id_pelanggan'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
