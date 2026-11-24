@@ -30,6 +30,8 @@ class KategoriSeeder extends Seeder
                 'deskripsi' => 'Air mineral, teh, kopi, dan minuman kemasan.',
                 'is_active' => true,
             ],
+
+            //
             [
                 'nama_kategori' => 'Kebutuhan Rumah',
                 'slug' => 'kebutuhan-rumah',
