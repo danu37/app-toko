@@ -32,6 +32,18 @@ const { can } = usePermissions();
             >
                 Riwayat Transaksi
             </Link>
+            <Link
+                v-if="can.viewTransactionHistory"
+                :href="route('transaksi.laporan')"
+                class="rounded-lg border px-3.5 py-2 text-xs font-medium transition"
+                :class="
+                    route().current('transaksi.laporan')
+                        ? 'border-neutral-900 bg-neutral-900 text-white'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'
+                "
+            >
+                Laporan Kasir (PDF)
+            </Link>
         </nav>
 
         <BaseButton v-if="can.createTransactions" :href="route('transaksi.create')" variant="emerald" size="sm">

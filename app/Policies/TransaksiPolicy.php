@@ -31,7 +31,7 @@ class TransaksiPolicy
 
     public function create(User $user): bool
     {
-        return $user->is_active && $user->hasRole([User::ROLE_ADMIN, User::ROLE_KASIR]);
+        return $user->is_active && $user->isKasir();
     }
 
     public function update(User $user, Transaksi $transaksi): bool
@@ -42,5 +42,10 @@ class TransaksiPolicy
     public function delete(User $user, Transaksi $transaksi): bool
     {
         return $user->is_active && $user->isAdmin();
+    }
+
+    public function verify(User $user, Transaksi $transaksi): bool
+    {
+        return $user->is_active && $user->hasRole([User::ROLE_ADMIN, User::ROLE_KASIR]);
     }
 }

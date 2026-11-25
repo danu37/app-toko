@@ -161,6 +161,14 @@ const { formatCurrency } = useCurrency();
                 </div>
 
                 <div class="flex shrink-0 flex-wrap items-center gap-2">
+                    <BaseButton
+                        v-if="can.viewTransactionHistory"
+                        :href="route('transaksi.laporan')"
+                        variant="secondary"
+                        size="sm"
+                    >
+                        Cetak Laporan PDF
+                    </BaseButton>
                     <BaseButton v-if="can.createCustomers" :href="route('pelanggan.create')" variant="secondary" size="sm">
                         + Tambah Pelanggan
                     </BaseButton>

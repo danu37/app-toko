@@ -45,9 +45,13 @@ const form = useForm({
     items: [],
 });
 
-const totalAmount = computed(() =>
+const subtotalAmount = computed(() =>
     cartItems.value.reduce((sum, item) => sum + Number(item.harga) * Number(item.jumlah), 0),
 );
+
+const ppnAmount = computed(() => Math.round(subtotalAmount.value * 0.11 * 100) / 100);
+
+const totalAmount = computed(() => Math.round((subtotalAmount.value + ppnAmount.value) * 100) / 100);
 
 const firstItemError = computed(() => {
     if (form.errors.items) return form.errors.items;
@@ -140,6 +144,8 @@ const submitTransaction = () => {
                 <div class="lg:sticky lg:top-20">
                     <TransactionSummary
                         :items="cartItems"
+                        :subtotal-amount="subtotalAmount"
+                        :ppn-amount="ppnAmount"
                         :total-amount="totalAmount"
                         :customers="customers"
                         :branches="branches"

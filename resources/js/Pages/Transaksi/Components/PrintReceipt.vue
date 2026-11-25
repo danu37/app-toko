@@ -187,7 +187,7 @@ const cashierName = computed(() => {
                 <span class="ml-auto whitespace-nowrap">-{{ formatCurrency(discountAmount) }}</span>
             </div>
             <div v-if="taxAmount > 0" class="flex flex-wrap items-baseline justify-between gap-x-2 text-[0.92em]">
-                <span>Pajak</span>
+                <span>PPN ({{ Number(transaction.ppn_rate || 11) }}%)</span>
                 <span class="ml-auto whitespace-nowrap">{{ formatCurrency(taxAmount) }}</span>
             </div>
             <div class="flex flex-wrap items-baseline justify-between gap-x-2 border-t border-dotted border-neutral-300 pt-1 text-[1.08em] font-bold print:border-black">

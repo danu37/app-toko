@@ -6,6 +6,7 @@ use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PelangganDashboardController;
+use App\Http\Controllers\PelangganOrderController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\ProfileController;
@@ -39,9 +40,11 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
         ->whereNumber('pelanggan')
         ->name('pelanggan.show');
 
-    // Transaksi: Admin & Kasir dapat melihat daftar, riwayat, detail, dan membuat transaksi
+    // Transaksi: Admin & Kasir dapat melihat daftar, riwayat, laporan operasional PDF, detail, dan membuat transaksi
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     Route::get('/transaksi/riwayat', [TransaksiController::class, 'riwayat'])->name('transaksi.riwayat');
+    Route::get('/transaksi/laporan', [TransaksiController::class, 'laporan'])->name('transaksi.laporan');
+    Route::get('/transaksi/laporan/pdf', [TransaksiController::class, 'laporanPdf'])->name('transaksi.laporan.pdf');
     Route::get('/transaksi/create', [TransaksiController::class, 'create'])->name('transaksi.create');
     Route::post('/transaksi', [TransaksiController::class, 'store'])->name('transaksi.store');
     Route::get('/transaksi/{transaksi}', [TransaksiController::class, 'show'])
@@ -50,6 +53,9 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/transaksi/{transaksi}/nota', [TransaksiController::class, 'nota'])
         ->whereNumber('transaksi')
         ->name('transaksi.nota');
+    Route::patch('/transaksi/{transaksi}/verifikasi', [TransaksiController::class, 'verify'])
+        ->whereNumber('transaksi')
+        ->name('transaksi.verify');
 
     // Referensi Kategori & Cabang (read-only untuk kasir)
     Route::get('/kategori', [KategoriController::class, 'index'])->name('kategori.index');
@@ -87,9 +93,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/cabang/{cabang}', [CabangController::class, 'update']);
     Route::delete('/cabang/{cabang}', [CabangController::class, 'destroy'])->name('cabang.destroy');
 
-    // Laporan Penjualan, Transaksi, Produk Terlaris, Rekap Pendapatan, Pelanggan & Export CSV khusus Admin
+    // Laporan Penjualan, Transaksi, Produk Terlaris, Rekap Pendapatan, Pelanggan & Export CSV/PDF khusus Admin
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
     Route::get('/laporan/transaksi', [LaporanController::class, 'transaksi'])->name('laporan.transaksi');
+    Route::get('/laporan/transaksi/pdf', [LaporanController::class, 'transaksiPdf'])->name('laporan.transaksi.pdf');
     Route::get('/laporan/produk', [LaporanController::class, 'produk'])->name('laporan.produk');
     Route::get('/laporan/pelanggan', [LaporanController::class, 'pelanggan'])->name('laporan.pelanggan');
     Route::get('/laporan/export', [LaporanController::class, 'export'])->name('laporan.export');
@@ -108,9 +116,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
 });
 
-// Dashboard Khusus Role Pelanggan
+// Dashboard & Pembelian Khusus Role Pelanggan
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/pelanggan/dashboard', [PelangganDashboardController::class, 'index'])->name('pelanggan.dashboard');
+    Route::get('/pelanggan/belanja', [PelangganOrderController::class, 'create'])->name('pelanggan.order.create');
+    Route::post('/pelanggan/belanja', [PelangganOrderController::class, 'store'])->name('pelanggan.order.store');
     Route::get('/pelanggan/transaksi/{transaksi}/nota', [TransaksiController::class, 'nota'])->name('pelanggan.transaksi.nota');
 });
 

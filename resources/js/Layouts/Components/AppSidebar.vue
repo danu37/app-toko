@@ -75,6 +75,13 @@ const cashierLinks = computed(() => [
         visible: can.value.viewTransactionHistory,
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
     },
+    {
+        label: 'Laporan Kasir (PDF)',
+        href: route('transaksi.laporan'),
+        active: route().current('transaksi.laporan'),
+        visible: can.value.viewTransactionHistory,
+        icon: 'M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z',
+    },
 ]);
 
 const operationalLinks = computed(() => [

@@ -5,6 +5,7 @@ import BaseBadge from '@/Components/UI/BaseBadge.vue';
 import BaseButton from '@/Components/UI/BaseButton.vue';
 import StoreMediaBox from '@/Pages/Store/Components/StoreMediaBox.vue';
 import { useCurrency } from '@/Composables/useCurrency';
+import { usePermissions } from '@/Composables/usePermissions';
 
 defineProps({
     product: {
@@ -26,6 +27,7 @@ defineProps({
 });
 
 const { formatCurrency } = useCurrency();
+const { user, isPelanggan } = usePermissions();
 </script>
 
 <template>
@@ -96,6 +98,20 @@ const { formatCurrency } = useCurrency();
                     </div>
 
                     <div class="flex flex-wrap gap-3 pt-2">
+                        <BaseButton
+                            v-if="product.stok > 0 && isPelanggan"
+                            :href="route('pelanggan.order.create', { produk: product.id_produk })"
+                            variant="emerald"
+                        >
+                            Beli Sekarang &amp; Upload Bukti
+                        </BaseButton>
+                        <BaseButton
+                            v-else-if="product.stok > 0 && !user"
+                            :href="route('login')"
+                            variant="primary"
+                        >
+                            Masuk untuk Membeli
+                        </BaseButton>
                         <BaseButton :href="route('store.shop')" variant="secondary">
                             &larr; Kembali ke Katalog
                         </BaseButton>

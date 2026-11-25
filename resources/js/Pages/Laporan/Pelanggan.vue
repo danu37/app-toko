@@ -63,8 +63,8 @@ const activeQuery = computed(() => {
     return query;
 });
 
-const exportUrl = computed(() =>
-    route('laporan.export', {
+const pdfUrl = computed(() =>
+    route('laporan.pdf', {
         report: 'customers',
         ...activeQuery.value,
     }),
@@ -114,11 +114,8 @@ const printReport = () => {
 
             <ReportTabs>
                 <template #actions>
-                    <BaseButton :href="exportUrl" external variant="secondary" size="sm">
-                        Export CSV
-                    </BaseButton>
-                    <BaseButton variant="secondary" size="sm" @click="printReport">
-                        Cetak Laporan
+                    <BaseButton :href="pdfUrl" external variant="emerald" size="sm">
+                        Download PDF
                     </BaseButton>
                 </template>
             </ReportTabs>

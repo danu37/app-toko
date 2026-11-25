@@ -66,7 +66,7 @@ class HandleInertiaRequests extends Middleware
                     'viewTransactions' => $user->isAdmin() || $user->isKasir(),
                     'viewTransactionHistory' => $user->can('view-transaction-history'),
                     'viewDailySales' => $user->can('view-daily-sales'),
-                    'createTransactions' => $user->isAdmin() || $user->isKasir(),
+                    'createTransactions' => $user->isKasir(),
                     'manageTransactions' => $user->isAdmin(),
                     'manageBranches' => $user->isAdmin(),
                     'viewReports' => $user->isAdmin(),

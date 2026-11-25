@@ -27,7 +27,7 @@ class TransaksiFlowTest extends TestCase
         $response = $this->actingAs($kasir)->post(route('transaksi.store'), [
             'id_pelanggan' => $pelanggan->id_pelanggan,
             'metode_pembayaran' => 'tunai',
-            'uang_bayar' => 100000,
+            'uang_bayar' => 110000,
             // Nilai total/harga palsu dari client harus diabaikan backend
             'total_belanja' => 1,
             'kembalian' => 999999,
@@ -42,10 +42,13 @@ class TransaksiFlowTest extends TestCase
         $response->assertRedirect(route('transaksi.show', $transaksi));
         $this->assertNotEmpty($transaksi->kode_transaksi);
 
-        // 2 * 25000 + 3 * 15000 = 95000, uang_bayar = 100000 => kembalian = 5000
-        $this->assertSame('95000.00', $transaksi->total_belanja);
-        $this->assertSame('100000.00', $transaksi->uang_bayar);
-        $this->assertSame('5000.00', $transaksi->kembalian);
+        // Subtotal: 2 * 25000 + 3 * 15000 = 95000, PPN 11% = 10450, Total = 105450, uang_bayar = 110000 => kembalian = 4550
+        $this->assertSame('95000.00', $transaksi->subtotal);
+        $this->assertSame('11.00', $transaksi->ppn_rate);
+        $this->assertSame('10450.00', $transaksi->pajak);
+        $this->assertSame('105450.00', $transaksi->total_belanja);
+        $this->assertSame('110000.00', $transaksi->uang_bayar);
+        $this->assertSame('4550.00', $transaksi->kembalian);
         $this->assertSame($kasir->id, $transaksi->user_id);
         $this->assertSame($kasir->name, $transaksi->nama_kasir);
         $this->assertSame($cabang->id_cabang, $transaksi->id_cabang);
@@ -100,7 +103,7 @@ class TransaksiFlowTest extends TestCase
 
         $transaksi = $transaksi->fresh('detail');
 
-        $this->assertSame('40000.00', $transaksi->total_belanja);
+        $this->assertSame('44400.00', $transaksi->total_belanja);
         $this->assertSame('Kopi Awal', $transaksi->detail->first()->nama_produk);
         $this->assertSame('20000.00', $transaksi->detail->first()->harga);
         $this->assertSame(40000.0, $transaksi->detail->first()->subtotal);
@@ -236,9 +239,9 @@ class TransaksiFlowTest extends TestCase
         $trx = Transaksi::query()->latest('id_transaksi')->firstOrFail();
         $response->assertRedirect(route('transaksi.show', $trx));
 
-        $this->assertSame('70000.00', $trx->total_belanja);
+        $this->assertSame('77700.00', $trx->total_belanja);
         $this->assertSame('100000.00', $trx->uang_bayar);
-        $this->assertSame('30000.00', $trx->kembalian);
+        $this->assertSame('22300.00', $trx->kembalian);
         $this->assertSame(8, $produk->fresh()->stok);
 
         // Non-tunai (QRIS) tanpa nominal uang_bayar mengisi lunas otomatis
@@ -251,8 +254,8 @@ class TransaksiFlowTest extends TestCase
         ])->assertRedirect();
 
         $qrisTrx = Transaksi::query()->latest('id_transaksi')->firstOrFail();
-        $this->assertSame('35000.00', $qrisTrx->total_belanja);
-        $this->assertSame('35000.00', $qrisTrx->uang_bayar);
+        $this->assertSame('38850.00', $qrisTrx->total_belanja);
+        $this->assertSame('38850.00', $qrisTrx->uang_bayar);
         $this->assertSame('0.00', $qrisTrx->kembalian);
         $this->assertSame(7, $produk->fresh()->stok);
     }
@@ -282,9 +285,12 @@ class TransaksiFlowTest extends TestCase
                 ->component('Transaksi/Show')
                 ->where('transaction.kode_transaksi', $trx->kode_transaksi)
                 ->where('transaction.nama_kasir', $kasir->name)
-                ->where('transaction.total_belanja', 17000)
+                ->where('transaction.subtotal', 17000)
+                ->where('transaction.ppn_rate', 11)
+                ->where('transaction.pajak', 1870)
+                ->where('transaction.total_belanja', 18870)
                 ->where('transaction.uang_bayar', 20000)
-                ->where('transaction.kembalian', 3000)
+                ->where('transaction.kembalian', 1130)
                 ->where('transaction.pelanggan.nama_pelanggan', 'Siti Nota')
                 ->where('transaction.cabang.nama_cabang', 'Cabang Nota')
                 ->where('transaction.detail.0.nama_produk', 'Teh Celup')
@@ -468,7 +474,7 @@ class TransaksiFlowTest extends TestCase
         $response = $this->actingAs($kasir)->post(route('transaksi.store'), [
             'id_pelanggan' => $pelanggan->id_pelanggan,
             'metode_pembayaran' => 'qris',
-            'uang_bayar' => 75000,
+            'uang_bayar' => 83250,
             'items' => [
                 ['id_produk' => $produk->id_produk, 'jumlah' => 1],
             ],
@@ -478,8 +484,8 @@ class TransaksiFlowTest extends TestCase
         $response->assertRedirect(route('transaksi.show', $trx));
 
         $this->assertSame('qris', $trx->metode_pembayaran);
-        $this->assertSame('75000.00', $trx->total_belanja);
-        $this->assertSame('75000.00', $trx->uang_bayar);
+        $this->assertSame('83250.00', $trx->total_belanja);
+        $this->assertSame('83250.00', $trx->uang_bayar);
         $this->assertSame('0.00', $trx->kembalian);
         $this->assertSame(9, $produk->fresh()->stok);
     }
@@ -526,5 +532,217 @@ class TransaksiFlowTest extends TestCase
                 ->where('storeInfo.qris.merchant_name', 'Danu Anggo, Pakaian')
                 ->where('storeInfo.qris.nmid', 'ID1026645584610')
             );
+    }
+
+    public function test_kasir_can_access_operational_pdf_report_scoped_to_own_transactions(): void
+    {
+        $kasirA = User::factory()->kasir()->create(['name' => 'Kasir A']);
+        $kasirB = User::factory()->kasir()->create(['name' => 'Kasir B']);
+        $pelanggan = Pelanggan::factory()->create();
+        $today = now()->toDateString();
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-KA-1',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirA->id,
+            'nama_kasir' => $kasirA->name,
+            'metode_pembayaran' => 'tunai',
+            'total_belanja' => 50000,
+            'uang_bayar' => 50000,
+            'kembalian' => 0,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-KA-2',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirA->id,
+            'nama_kasir' => $kasirA->name,
+            'metode_pembayaran' => 'qris',
+            'total_belanja' => 75000,
+            'uang_bayar' => 75000,
+            'kembalian' => 0,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-KB-1',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirB->id,
+            'nama_kasir' => $kasirB->name,
+            'metode_pembayaran' => 'tunai',
+            'total_belanja' => 100000,
+            'uang_bayar' => 100000,
+            'kembalian' => 0,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        // Kasir A cannot override ?kasir= to view Kasir B's transactions
+        $this->actingAs($kasirA)
+            ->get(route('transaksi.laporan', ['start_date' => $today, 'end_date' => $today, 'kasir' => $kasirB->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Laporan')
+                ->where('aggregates.total_transaksi', 2)
+                ->where('aggregates.total_omzet', 125000)
+                ->has('transactions', 2)
+                ->has('paymentMethodRecap', 2)
+            );
+    }
+
+    public function test_admin_can_filter_kasir_operational_report_and_pelanggan_is_forbidden(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $kasirA = User::factory()->kasir()->create();
+        $kasirB = User::factory()->kasir()->create();
+        $pelangganUser = User::factory()->create(['role' => User::ROLE_PELANGGAN]);
+        $pelanggan = Pelanggan::factory()->create();
+        $today = now()->toDateString();
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-A-1',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirA->id,
+            'nama_kasir' => $kasirA->name,
+            'metode_pembayaran' => 'tunai',
+            'total_belanja' => 40000,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-B-1',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirB->id,
+            'nama_kasir' => $kasirB->name,
+            'metode_pembayaran' => 'qris',
+            'total_belanja' => 60000,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('transaksi.laporan', ['start_date' => $today, 'end_date' => $today, 'kasir' => $kasirB->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Transaksi/Laporan')
+                ->where('aggregates.total_transaksi', 1)
+                ->where('aggregates.total_omzet', 60000)
+            );
+
+        $this->actingAs($pelangganUser)
+            ->get(route('transaksi.laporan'))
+            ->assertForbidden();
+    }
+
+    public function test_kasir_and_admin_can_download_operational_report_pdf_and_pelanggan_is_forbidden(): void
+    {
+        $kasir = User::factory()->kasir()->create(['name' => 'Kasir PDF']);
+        $admin = User::factory()->admin()->create();
+        $pelangganUser = User::factory()->create(['role' => User::ROLE_PELANGGAN]);
+        $pelanggan = Pelanggan::factory()->create();
+        $today = now()->toDateString();
+
+        Transaksi::create([
+            'kode_transaksi' => 'TRX-PDF-1',
+            'tanggal' => $today,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasir->id,
+            'nama_kasir' => $kasir->name,
+            'metode_pembayaran' => 'qris',
+            'total_belanja' => 85000,
+            'uang_bayar' => 85000,
+            'kembalian' => 0,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        $kasirResponse = $this->actingAs($kasir)
+            ->get(route('transaksi.laporan.pdf', ['start_date' => $today, 'end_date' => $today]));
+
+        $kasirResponse->assertOk();
+        $this->assertStringContainsString('application/pdf', (string) $kasirResponse->headers->get('content-type'));
+        $this->assertStringContainsString('attachment;', (string) $kasirResponse->headers->get('content-disposition'));
+        $this->assertStringContainsString('.pdf', (string) $kasirResponse->headers->get('content-disposition'));
+        $this->assertStringStartsWith('%PDF-', $kasirResponse->getContent());
+
+        $adminResponse = $this->actingAs($admin)
+            ->get(route('transaksi.laporan.pdf', ['start_date' => $today, 'end_date' => $today, 'kasir' => $kasir->id]));
+
+        $adminResponse->assertOk();
+        $this->assertStringContainsString('application/pdf', (string) $adminResponse->headers->get('content-type'));
+        $this->assertStringStartsWith('%PDF-', $adminResponse->getContent());
+
+        $this->actingAs($pelangganUser)
+            ->get(route('transaksi.laporan.pdf'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_delete_transaction_and_restore_product_stock(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $kasir = User::factory()->kasir()->create();
+        $pelanggan = Pelanggan::factory()->create();
+        $produk = Produk::factory()->create(['harga' => 25000, 'stok' => 10, 'is_active' => true]);
+
+        // Buat transaksi via kasir sehingga stok berkurang menjadi 7
+        $this->actingAs($kasir)->post(route('transaksi.store'), [
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'metode_pembayaran' => 'tunai',
+            'uang_bayar' => 100000,
+            'items' => [
+                ['id_produk' => $produk->id_produk, 'jumlah' => 3],
+            ],
+        ])->assertRedirect();
+
+        $transaksi = Transaksi::query()->latest('id_transaksi')->firstOrFail();
+        $this->assertSame(7, $produk->fresh()->stok);
+
+        // Kasir tetap ditolak 403 saat mencoba menghapus
+        $this->actingAs($kasir)
+            ->delete(route('transaksi.destroy', $transaksi))
+            ->assertForbidden();
+
+        // Admin berhasil menghapus transaksi (redirect kembali ke halaman asal dengan filter tetap aktif)
+        $this->actingAs($admin)
+            ->from(route('laporan.transaksi', ['kasir' => $kasir->id]))
+            ->delete(route('transaksi.destroy', $transaksi))
+            ->assertRedirect(route('laporan.transaksi', ['kasir' => $kasir->id]));
+
+        $this->assertDatabaseMissing('tbl_transaksi', ['id_transaksi' => $transaksi->id_transaksi]);
+        $this->assertDatabaseMissing('tbl_detail_transaksi', ['id_transaksi' => $transaksi->id_transaksi]);
+        $this->assertSame(10, $produk->fresh()->stok);
+    }
+
+    public function test_admin_cannot_access_pos_or_create_transactions(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $pelanggan = Pelanggan::factory()->create();
+        $produk = Produk::factory()->create(['harga' => 20000, 'stok' => 5, 'is_active' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('auth.can.createTransactions', false)
+                ->where('auth.can.manageTransactions', true)
+            );
+
+        $this->actingAs($admin)
+            ->get(route('transaksi.create'))
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->post(route('transaksi.store'), [
+                'id_pelanggan' => $pelanggan->id_pelanggan,
+                'metode_pembayaran' => 'tunai',
+                'uang_bayar' => 20000,
+                'items' => [
+                    ['id_produk' => $produk->id_produk, 'jumlah' => 1],
+                ],
+            ])
+            ->assertForbidden();
     }
 }

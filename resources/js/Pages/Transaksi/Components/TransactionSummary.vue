@@ -13,6 +13,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    subtotalAmount: {
+        type: Number,
+        default: 0,
+    },
+    ppnAmount: {
+        type: Number,
+        default: 0,
+    },
     totalAmount: {
         type: Number,
         default: 0,
@@ -217,7 +225,11 @@ watch(
         <div class="rounded-xl bg-neutral-900 p-3.5 text-white">
             <div class="flex items-center justify-between text-xs text-neutral-300">
                 <span>Subtotal ({{ totalItemQty }} unit / {{ items.length }} produk)</span>
-                <span>{{ formatCurrency(totalAmount) }}</span>
+                <span>{{ formatCurrency(subtotalAmount) }}</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-xs text-neutral-300">
+                <span>PPN (11%)</span>
+                <span>{{ formatCurrency(ppnAmount) }}</span>
             </div>
             <div class="mt-1.5 flex items-baseline justify-between border-t border-neutral-700 pt-1.5">
                 <span class="text-sm font-medium text-neutral-200">Total Pembayaran</span>

@@ -12,6 +12,7 @@ import BaseTable from '@/Components/UI/BaseTable.vue';
 import TableAction from '@/Components/Tables/TableAction.vue';
 import SearchInput from '@/Components/Forms/SearchInput.vue';
 import EmptyState from '@/Components/Feedback/EmptyState.vue';
+import ConfirmDialog from '@/Components/Feedback/ConfirmDialog.vue';
 import TransaksiTabs from '@/Pages/Transaksi/Components/TransaksiTabs.vue';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useCurrency } from '@/Composables/useCurrency';
@@ -26,22 +27,29 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    cashiers: {
+        type: Array,
+        default: () => [],
+    },
     filters: {
         type: Object,
-        default: () => ({ search: '', tanggal: '', cabang: '', status: '', metode: '' }),
+        default: () => ({ search: '', tanggal: '', cabang: '', kasir: '', status: '', metode: '' }),
     },
 });
 
-const { isAdmin } = usePermissions();
+const { can, isAdmin } = usePermissions();
 const { formatCurrency } = useCurrency();
 const { formatDate } = useDate();
 
 const search = ref(props.filters.search ?? '');
 const tanggal = ref(props.filters.tanggal ?? '');
 const cabang = ref(props.filters.cabang ?? '');
+const kasir = ref(props.filters.kasir ?? '');
 const status = ref(props.filters.status ?? '');
 const metode = ref(props.filters.metode ?? '');
 const loading = ref(false);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 
 const branchOptions = computed(() =>
     props.branches.map((b) => ({
@@ -50,7 +58,15 @@ const branchOptions = computed(() =>
     })),
 );
 
+const cashierOptions = computed(() =>
+    props.cashiers.map((u) => ({
+        value: u.id,
+        label: `${u.name} (${u.role === 'admin' ? 'Admin' : 'Kasir'})`,
+    })),
+);
+
 const statusOptions = [
+    { value: 'menunggu_verifikasi', label: 'Menunggu Verifikasi' },
     { value: 'selesai', label: 'Selesai' },
     { value: 'dibatalkan', label: 'Dibatalkan' },
 ];
@@ -63,7 +79,7 @@ const methodOptions = [
 ];
 
 const hasActiveFilter = computed(() =>
-    Boolean(search.value || tanggal.value || cabang.value || status.value || metode.value),
+    Boolean(search.value || tanggal.value || cabang.value || kasir.value || status.value || metode.value),
 );
 
 const headers = [
@@ -82,6 +98,7 @@ const applyFilters = () => {
     if (search.value) query.search = search.value;
     if (tanggal.value) query.tanggal = tanggal.value;
     if (cabang.value) query.cabang = cabang.value;
+    if (isAdmin.value && kasir.value) query.kasir = kasir.value;
     if (status.value) query.status = status.value;
     if (metode.value) query.metode = metode.value;
     loading.value = true;
@@ -98,9 +115,22 @@ const resetFilters = () => {
     search.value = '';
     tanggal.value = '';
     cabang.value = '';
+    kasir.value = '';
     status.value = '';
     metode.value = '';
     applyFilters();
+};
+
+const executeDelete = () => {
+    if (!deleteTarget.value) return;
+    deleting.value = true;
+    router.delete(route('transaksi.destroy', deleteTarget.value.id_transaksi), {
+        preserveScroll: true,
+        onFinish: () => {
+            deleting.value = false;
+            deleteTarget.value = null;
+        },
+    });
 };
 </script>
 
@@ -116,10 +146,10 @@ const resetFilters = () => {
                 @submit.prevent="applyFilters"
             >
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                    <div class="lg:col-span-4">
+                    <div class="lg:col-span-3">
                         <SearchInput
                             v-model="search"
-                            placeholder="Cari kode atau pelanggan..."
+                            placeholder="Cari kode, pelanggan, kasir, atau produk..."
                             @search="applyFilters"
                         />
                     </div>
@@ -140,19 +170,39 @@ const resetFilters = () => {
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="lg:col-span-2">
+                    <div v-if="isAdmin && cashierOptions.length > 0" class="lg:col-span-2">
+                        <BaseSelect
+                            v-model="kasir"
+                            :options="cashierOptions"
+                            placeholder="Semua Kasir"
+                            aria-label="Filter kasir"
+                            @change="applyFilters"
+                        />
+                    </div>
+                    <div class="lg:col-span-1">
                         <BaseSelect
                             v-model="metode"
                             :options="methodOptions"
-                            placeholder="Semua Metode"
+                            placeholder="Metode"
                             aria-label="Filter metode"
                             @change="applyFilters"
                         />
                     </div>
-                    <div class="flex items-center gap-2 lg:col-span-2">
-                        <BaseButton type="submit" variant="secondary" class="flex-1">Filter</BaseButton>
-                        <BaseButton v-if="hasActiveFilter" type="button" variant="ghost" @click="resetFilters">
-                            Reset
+                    <div class="lg:col-span-1">
+                        <BaseSelect
+                            v-model="status"
+                            :options="statusOptions"
+                            placeholder="Status"
+                            aria-label="Filter status"
+                            @change="applyFilters"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2 lg:col-span-1">
+                        <BaseButton type="submit" variant="secondary" class="w-full">Filter</BaseButton>
+                    </div>
+                    <div v-if="hasActiveFilter" class="flex items-center lg:col-span-12">
+                        <BaseButton type="button" variant="ghost" size="sm" @click="resetFilters">
+                            Reset Filter
                         </BaseButton>
                     </div>
                 </div>
@@ -191,19 +241,43 @@ const resetFilters = () => {
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-xs uppercase text-neutral-600">
                         {{ item.metode_pembayaran || '-' }}
+                        <span v-if="item.bukti_pembayaran_url" class="block text-[10px] font-medium normal-case text-sky-700">
+                            Ada Bukti Bayar
+                        </span>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3">
-                        <BaseBadge :variant="item.status === 'dibatalkan' ? 'danger' : 'success'">
-                            {{ item.status ?? 'selesai' }}
+                        <BaseBadge
+                            :variant="
+                                item.status === 'menunggu_verifikasi'
+                                    ? 'warning'
+                                    : item.status === 'dibatalkan'
+                                      ? 'danger'
+                                      : 'success'
+                            "
+                        >
+                            {{
+                                item.status === 'menunggu_verifikasi'
+                                    ? 'Menunggu Verifikasi'
+                                    : item.status ?? 'selesai'
+                            }}
                         </BaseBadge>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-right font-semibold text-neutral-900">
                         {{ formatCurrency(item.total_belanja) }}
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-right">
-                        <TableAction :href="route('transaksi.show', item.id_transaksi)" variant="primary">
-                            Detail
-                        </TableAction>
+                        <div class="inline-flex items-center justify-end gap-1">
+                            <TableAction :href="route('transaksi.show', item.id_transaksi)" variant="primary">
+                                Detail
+                            </TableAction>
+                            <TableAction
+                                v-if="can.manageTransactions"
+                                variant="danger"
+                                @click="deleteTarget = item"
+                            >
+                                Hapus
+                            </TableAction>
+                        </div>
                     </td>
                 </tr>
 
@@ -211,6 +285,16 @@ const resetFilters = () => {
                     <BasePagination :meta="transactions.meta" />
                 </template>
             </BaseTable>
+
+            <ConfirmDialog
+                v-if="can.manageTransactions"
+                :show="Boolean(deleteTarget)"
+                title="Hapus Transaksi"
+                :message="`Yakin ingin menghapus transaksi ${deleteTarget?.kode_transaksi || `#TRX-${deleteTarget?.id_transaksi ?? ''}`}? Stok produk pada transaksi ini akan dikembalikan.`"
+                :loading="deleting"
+                @close="deleteTarget = null"
+                @confirm="executeDelete"
+            />
         </div>
     </component>
 </template>

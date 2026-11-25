@@ -8,10 +8,12 @@ import BasePagination from '@/Components/UI/BasePagination.vue';
 import BaseTable from '@/Components/UI/BaseTable.vue';
 import TableAction from '@/Components/Tables/TableAction.vue';
 import EmptyState from '@/Components/Feedback/EmptyState.vue';
+import ConfirmDialog from '@/Components/Feedback/ConfirmDialog.vue';
 import ReportTabs from '@/Pages/Laporan/Components/ReportTabs.vue';
 import ReportFilter from '@/Pages/Laporan/Components/ReportFilter.vue';
 import ReportPrintHeader from '@/Pages/Laporan/Components/ReportPrintHeader.vue';
 import StatCard from '@/Pages/Dashboard/Components/StatCard.vue';
+import { usePermissions } from '@/Composables/usePermissions';
 import { useCurrency } from '@/Composables/useCurrency';
 import { useDate } from '@/Composables/useDate';
 
@@ -46,6 +48,7 @@ const props = defineProps({
     },
 });
 
+const { can } = usePermissions();
 const { formatCurrency } = useCurrency();
 const { formatDate } = useDate();
 
@@ -57,6 +60,8 @@ const kasir = ref(props.filters.kasir ?? '');
 const status = ref(props.filters.status ?? '');
 const search = ref(props.filters.search ?? '');
 const loading = ref(false);
+const deleteTarget = ref(null);
+const deleting = ref(false);
 
 const headers = [
     { key: 'kode', label: 'Kode / Metode' },
@@ -86,6 +91,8 @@ const exportUrl = computed(() =>
         ...activeQuery.value,
     }),
 );
+
+const pdfUrl = computed(() => route('laporan.transaksi.pdf', activeQuery.value));
 
 const printFilterSummary = computed(() => {
     const parts = [];
@@ -131,6 +138,18 @@ const resetFilters = () => {
 const printReport = () => {
     window.print();
 };
+
+const executeDelete = () => {
+    if (!deleteTarget.value) return;
+    deleting.value = true;
+    router.delete(route('transaksi.destroy', deleteTarget.value.id_transaksi), {
+        preserveScroll: true,
+        onFinish: () => {
+            deleting.value = false;
+            deleteTarget.value = null;
+        },
+    });
+};
 </script>
 
 <template>
@@ -148,11 +167,8 @@ const printReport = () => {
 
             <ReportTabs>
                 <template #actions>
-                    <BaseButton :href="exportUrl" external variant="secondary" size="sm">
-                        Export CSV
-                    </BaseButton>
-                    <BaseButton variant="secondary" size="sm" @click="printReport">
-                        Cetak Laporan
+                    <BaseButton :href="pdfUrl" external variant="emerald" size="sm">
+                        Download PDF
                     </BaseButton>
                 </template>
             </ReportTabs>
@@ -247,9 +263,18 @@ const printReport = () => {
                         {{ formatCurrency(item.total_belanja) }}
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-right print:hidden">
-                        <TableAction :href="route('transaksi.show', item.id_transaksi)" variant="primary">
-                            Detail
-                        </TableAction>
+                        <div class="inline-flex items-center justify-end gap-1">
+                            <TableAction :href="route('transaksi.show', item.id_transaksi)" variant="primary">
+                                Detail
+                            </TableAction>
+                            <TableAction
+                                v-if="can.manageTransactions"
+                                variant="danger"
+                                @click="deleteTarget = item"
+                            >
+                                Hapus
+                            </TableAction>
+                        </div>
                     </td>
                 </tr>
 
@@ -257,6 +282,16 @@ const printReport = () => {
                     <BasePagination :meta="transactions.meta" class="print:hidden" />
                 </template>
             </BaseTable>
+
+            <ConfirmDialog
+                v-if="can.manageTransactions"
+                :show="Boolean(deleteTarget)"
+                title="Hapus Transaksi"
+                :message="`Yakin ingin menghapus transaksi ${deleteTarget?.kode_transaksi || `#TRX-${deleteTarget?.id_transaksi ?? ''}`}? Stok produk pada transaksi ini akan dikembalikan.`"
+                :loading="deleting"
+                @close="deleteTarget = null"
+                @confirm="executeDelete"
+            />
         </div>
     </AdminLayout>
 </template>

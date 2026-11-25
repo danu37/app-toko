@@ -10,7 +10,7 @@
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-2.0-9553E9?style=flat-square&logo=inertia&logoColor=white)](https://inertiajs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![MariaDB](https://img.shields.io/badge/MariaDB%20%2F%20MySQL-db--toko-003545?style=flat-square&logo=mariadb&logoColor=white)](https://mariadb.org/)
-[![PHPUnit](https://img.shields.io/badge/Tests-102%20Passed-10B981?style=flat-square&logo=checkmarx&logoColor=white)](#pengujian-dan-verifikasi)
+[![PHPUnit](https://img.shields.io/badge/Tests-104%20Passed-10B981?style=flat-square&logo=checkmarx&logoColor=white)](#pengujian-dan-verifikasi)
 
 [Fitur Utama](#fitur-utama) &bull;
 [Arsitektur](#arsitektur-sistem) &bull;
@@ -95,6 +95,19 @@
 - **Manajemen Kartu RFID Terpusat (`/pengguna`)**:
   - Arsitektur tabel khusus `rfid_cards` (`user_id`, `uid`, `status`, `registered_at`, `last_used_at`).
   - Admin dapat mendaftarkan kartu RFID baru, mengubah nomor UID, mengaktifkan/menonaktifkan kartu secara instan, serta menghapus/mencabut kartu yang hilang dengan dialog konfirmasi aman.
+
+### 8. Laporan Operasional Kasir & Cetak Dokumen PDF A4 (`/transaksi/laporan`)
+- **Akses Aman Khusus Kasir & Admin**:
+  - Kasir dapat mengakses laporan penjualan operasional shift kasir tanpa melanggar batasan hak akses admin (`/laporan/*` tetap terproteksi `403`).
+  - **Isolasi Data Otomatis**: Kasir hanya melihat dan mencetak data transaksi yang diproses oleh dirinya sendiri (`$actor->id`), sementara Admin dapat memfilter per kasir atau melihat keseluruhan.
+- **Ringkasan Lengkap & Rekonsiliasi**:
+  - Kartu indikator KPI: Total Transaksi, Transaksi Selesai, Total Penjualan (Omzet), Rata-rata Nilai Belanja, dan Total Kuantitas Item Terjual.
+  - Tabel rekonsiliasi penerimaan per metode pembayaran (Tunai, QRIS GPN, Transfer, Debit).
+  - Filter rentang tanggal (default hari ini untuk penutupan shift), status transaksi, metode pembayaran, cabang, dan pencarian kata kunci.
+- **Format Cetak PDF Dokumen A4 Rapi**:
+  - Menggunakan isolasi CSS `@media print` dengan `@page { size: A4 portrait; margin: 12mm; }`.
+  - Dilengkapi header dokumen resmi toko, periode laporan, identitas kasir, serta blok tanda tangan pengesahan (*Dibuat Oleh (Kasir)* & *Mengetahui (Administrator / Supervisor)*).
+  - Dapat dicetak langsung atau disimpan menjadi file PDF melalui tombol **Cetak / Simpan PDF** (`window.print()`).
 
 ---
 

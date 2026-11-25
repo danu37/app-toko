@@ -15,7 +15,11 @@ class Transaksi extends Model
 
     public const STATUS_SELESAI = 'selesai';
 
+    public const STATUS_MENUNGGU_VERIFIKASI = 'menunggu_verifikasi';
+
     public const STATUS_DIBATALKAN = 'dibatalkan';
+
+    public const PPN_RATE = 11.0;
 
     protected $table = 'tbl_transaksi';
 
@@ -30,11 +34,18 @@ class Transaksi extends Model
         'id_cabang',
         'user_id',
         'nama_kasir',
+        'subtotal',
+        'ppn_rate',
+        'pajak',
         'total_belanja',
         'metode_pembayaran',
+        'bukti_pembayaran',
         'uang_bayar',
         'kembalian',
         'status',
+        'verified_by',
+        'verified_at',
+        'catatan_verifikasi',
         'catatan',
     ];
 
@@ -42,9 +53,13 @@ class Transaksi extends Model
     {
         return [
             'tanggal' => 'date:Y-m-d',
+            'subtotal' => 'decimal:2',
+            'ppn_rate' => 'decimal:2',
+            'pajak' => 'decimal:2',
             'total_belanja' => 'decimal:2',
             'uang_bayar' => 'decimal:2',
             'kembalian' => 'decimal:2',
+            'verified_at' => 'datetime',
         ];
     }
 
@@ -82,5 +97,23 @@ class Transaksi extends Model
             'user_id',
             'id'
         );
+    }
+
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'verified_by',
+            'id'
+        );
+    }
+
+    public function getBuktiPembayaranUrlAttribute(): ?string
+    {
+        if (blank($this->bukti_pembayaran)) {
+            return null;
+        }
+
+        return asset('storage/'.ltrim($this->bukti_pembayaran, '/'));
     }
 }

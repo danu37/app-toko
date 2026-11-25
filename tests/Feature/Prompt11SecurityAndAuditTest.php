@@ -270,8 +270,8 @@ class Prompt11SecurityAndAuditTest extends TestCase
         $this->assertSame('Kasir Struk Panjang Banget Namanya', $trx->nama_kasir);
         $this->assertNotSame('FAKE-TRX-999', $trx->kode_transaksi);
         $this->assertSame(Transaksi::STATUS_SELESAI, $trx->status);
-        $this->assertSame('251000.00', $trx->total_belanja);
-        $this->assertSame('49000.00', $trx->kembalian);
+        $this->assertSame('278610.00', $trx->total_belanja);
+        $this->assertSame('21390.00', $trx->kembalian);
         $this->assertSame(6, $produk->fresh()->stok);
 
         // Admin menghapus produk (soft delete) setelah transaksi tercatat
@@ -286,9 +286,12 @@ class Prompt11SecurityAndAuditTest extends TestCase
                     ->component('Transaksi/Receipt')
                     ->where('initialSize', $size)
                     ->where('transaction.kode_transaksi', $trx->kode_transaksi)
-                    ->where('transaction.total_belanja', 251000)
+                    ->where('transaction.subtotal', 251000)
+                    ->where('transaction.ppn_rate', 11)
+                    ->where('transaction.pajak', 27610)
+                    ->where('transaction.total_belanja', 278610)
                     ->where('transaction.uang_bayar', 300000)
-                    ->where('transaction.kembalian', 49000)
+                    ->where('transaction.kembalian', 21390)
                     ->where('transaction.nama_kasir', 'Kasir Struk Panjang Banget Namanya')
                     ->where('transaction.kasir.name', 'Kasir Struk Panjang Banget Namanya')
                     ->where('transaction.pelanggan.nama_pelanggan', 'Pelanggan VIP Panjang Sekali Namanya')

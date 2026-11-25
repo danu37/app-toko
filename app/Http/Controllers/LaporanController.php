@@ -13,7 +13,10 @@ use App\Models\Kategori;
 use App\Models\Pelanggan;
 use App\Models\User;
 use App\Services\LaporanService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -96,6 +99,197 @@ class LaporanController extends Controller
                 'search' => $filters['search'],
             ],
         ]);
+    }
+
+    public function transaksiPdf(LaporanFilterRequest $request): HttpResponse
+    {
+        Gate::authorize('view-reports');
+
+        $filters = $request->filters();
+        $actor = $request->user();
+
+        $report = $this->laporanService->getCashierOperationalReport(
+            $actor,
+            $filters['start_date'],
+            $filters['end_date'],
+            $filters['cabang'],
+            $filters['status'],
+            null,
+            $filters['kasir'],
+            $filters['search'],
+            $filters['pelanggan'],
+        );
+
+        $filterSummary = [];
+        $kasirSlug = 'semua-kasir';
+        if ($filters['kasir']) {
+            $kasirName = User::query()->whereKey($filters['kasir'])->value('name');
+            if ($kasirName) {
+                $filterSummary[] = "Kasir: {$kasirName}";
+                $kasirSlug = Str::slug($kasirName) ?: 'kasir';
+            }
+        } else {
+            $filterSummary[] = 'Kasir: Semua Kasir';
+        }
+
+        if ($filters['cabang']) {
+            $cabangName = Cabang::query()->whereKey($filters['cabang'])->value('nama_cabang');
+            if ($cabangName) {
+                $filterSummary[] = "Cabang: {$cabangName}";
+            }
+        }
+        if ($filters['pelanggan']) {
+            $pelangganName = Pelanggan::query()->whereKey($filters['pelanggan'])->value('nama_pelanggan');
+            if ($pelangganName) {
+                $filterSummary[] = "Pelanggan: {$pelangganName}";
+            }
+        }
+        if ($filters['status']) {
+            $filterSummary[] = "Status: {$filters['status']}";
+        }
+        if ($filters['search']) {
+            $filterSummary[] = "Kata Kunci: \"{$filters['search']}\"";
+        }
+
+        $startLabel = $filters['start_date'] ?: 'Awal';
+        $endLabel = $filters['end_date'] ?: 'Sekarang';
+        $periodLabel = ($filters['start_date'] || $filters['end_date'])
+            ? "{$startLabel} s/d {$endLabel}"
+            : 'Semua Periode';
+
+        $pdf = Pdf::loadView('pdf.kasir-laporan', [
+            'title' => 'Laporan Transaksi',
+            'storeInfo' => config('store'),
+            'actor' => $actor,
+            'periodLabel' => $periodLabel,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'filterSummary' => $filterSummary,
+            'aggregates' => $report['aggregates'],
+            'paymentMethodRecap' => $report['paymentMethodRecap'],
+            'transactions' => $report['transactions'],
+        ])->setPaper('a4', 'portrait');
+
+        $timestamp = now()->format('Ymd-His');
+
+        return $pdf->download("laporan-transaksi-{$kasirSlug}-{$timestamp}.pdf");
+    }
+
+    public function exportPdf(LaporanFilterRequest $request): HttpResponse
+    {
+        Gate::authorize('view-reports');
+
+        $filters = $request->filters();
+        $reportType = $filters['report'];
+
+        if ($reportType === 'transactions') {
+            return $this->transaksiPdf($request);
+        }
+
+        $actor = $request->user();
+        $filterSummary = $this->buildAdminFilterSummary($filters);
+        $startLabel = $filters['start_date'] ?: 'Awal';
+        $endLabel = $filters['end_date'] ?: 'Sekarang';
+        $periodLabel = ($filters['start_date'] || $filters['end_date'])
+            ? "{$startLabel} s/d {$endLabel}"
+            : 'Semua Periode';
+
+        $viewData = [
+            'reportType' => $reportType,
+            'storeInfo' => config('store'),
+            'actor' => $actor,
+            'periodLabel' => $periodLabel,
+            'generatedAt' => now()->format('d/m/Y H:i'),
+            'filterSummary' => $filterSummary,
+        ];
+
+        if ($reportType === 'products') {
+            $report = $this->laporanService->getTopProductsReport(
+                $filters['start_date'],
+                $filters['end_date'],
+                $filters['cabang'],
+                $filters['pelanggan'],
+                $filters['kasir'],
+                $filters['kategori'],
+                $filters['search'],
+                $filters['sort'],
+            );
+            $viewData['title'] = 'Laporan Produk Terlaris';
+            $viewData['aggregates'] = $report['aggregates'];
+            $viewData['rows'] = $report['allRows'];
+        } elseif ($reportType === 'customers') {
+            $report = $this->laporanService->getCustomerReport(
+                $filters['search'],
+                $filters['start_date'],
+                $filters['end_date'],
+            );
+            $rows = $this->laporanService->getCustomerReportQuery(
+                $filters['search'],
+                $filters['start_date'],
+                $filters['end_date'],
+            )->limit(500)->get();
+
+            $viewData['title'] = 'Laporan Aktivitas Pelanggan';
+            $viewData['aggregates'] = $report['aggregates'];
+            $viewData['rows'] = $rows;
+        } else {
+            $salesReport = $this->laporanService->getSalesReport(
+                $filters['start_date'],
+                $filters['end_date'],
+                $filters['cabang'],
+                $filters['pelanggan'],
+                $filters['kasir'],
+                $filters['search'],
+            );
+            $dailyRecap = $this->laporanService->getDailyRecapCollection(
+                $filters['start_date'],
+                $filters['end_date'],
+                $filters['cabang'],
+                $filters['pelanggan'],
+                $filters['kasir'],
+            );
+
+            $viewData['title'] = 'Laporan Penjualan & Rekap Pendapatan';
+            $viewData['aggregates'] = $salesReport['aggregates'];
+            $viewData['dailyRecap'] = $dailyRecap;
+            $viewData['cashierRecap'] = $salesReport['cashierRecap'];
+        }
+
+        $pdf = Pdf::loadView('pdf.admin-laporan', $viewData)->setPaper('a4', 'portrait');
+        $timestamp = now()->format('Ymd-His');
+
+        return $pdf->download("laporan-{$reportType}-{$timestamp}.pdf");
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<int, string>
+     */
+    private function buildAdminFilterSummary(array $filters): array
+    {
+        $summary = [];
+        if ($filters['kasir']) {
+            $kasirName = User::query()->whereKey($filters['kasir'])->value('name');
+            if ($kasirName) {
+                $summary[] = "Kasir: {$kasirName}";
+            }
+        }
+        if ($filters['cabang']) {
+            $cabangName = Cabang::query()->whereKey($filters['cabang'])->value('nama_cabang');
+            if ($cabangName) {
+                $summary[] = "Cabang: {$cabangName}";
+            }
+        }
+        if ($filters['pelanggan']) {
+            $pelangganName = Pelanggan::query()->whereKey($filters['pelanggan'])->value('nama_pelanggan');
+            if ($pelangganName) {
+                $summary[] = "Pelanggan: {$pelangganName}";
+            }
+        }
+        if ($filters['search']) {
+            $summary[] = "Kata Kunci: \"{$filters['search']}\"";
+        }
+
+        return $summary;
     }
 
     public function produk(LaporanFilterRequest $request): Response
@@ -369,7 +563,10 @@ class LaporanController extends Controller
     private function getCashierOptions()
     {
         return UserResource::collection(
-            User::query()->orderBy('name')->get(['id', 'name', 'email', 'role', 'id_cabang', 'is_active'])
+            User::query()
+                ->where('role', User::ROLE_KASIR)
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role', 'id_cabang', 'is_active'])
         );
     }
 }

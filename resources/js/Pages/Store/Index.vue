@@ -64,56 +64,49 @@ const productLabel = (product) => {
         </div>
 
         <!-- 1. HERO SECTION -->
-        <section class="border-b border-neutral-200/80 bg-stone-50">
-            <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-14 lg:px-8 lg:py-20">
-                <div class="enter-stagger space-y-6 lg:col-span-6">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-neutral-600">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
-                            Katalog Kurasi Harian
-                        </div>
-                        <div class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200/90 bg-white/90 px-3 py-1 text-[11px] font-medium text-neutral-600 shadow-xs backdrop-blur-sm">
-                            <span class="relative flex h-2 w-2">
-                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                            </span>
-                            <span>Tap Kartu RFID untuk Login Instan</span>
-                        </div>
+        <section class="border-b border-neutral-200/70 bg-white">
+            <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-12 lg:gap-16 lg:px-8 lg:py-24">
+                <div class="enter-stagger space-y-7 lg:col-span-6">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <span class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-stone-50 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-neutral-900" aria-hidden="true" />
+                            Kurasi Kebutuhan Harian
+                        </span>
                     </div>
 
-                    <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl lg:leading-[1.12]">
+                    <h1 class="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-5xl lg:leading-[1.08]">
                         Kebutuhan Harian Pilihan untuk Keseharian Modern.
                     </h1>
 
-                    <p class="max-w-xl text-base leading-relaxed text-neutral-600">
-                        Hadirkan bahan pangan, minuman, dan perlengkapan rumah tangga berkualitas dengan standar mutu dan harga yang konsisten di {{ branches.length > 0 ? `${branches.length} cabang` : 'seluruh jaringan' }} TokoKita.
+                    <p class="max-w-lg text-base leading-relaxed text-neutral-500">
+                        Temukan bahan pangan, minuman, dan perlengkapan rumah tangga berkualitas dengan standar mutu dan harga transparan di {{ branches.length > 0 ? `${branches.length} cabang` : 'seluruh jaringan' }} TokoKita.
                     </p>
 
                     <div class="flex flex-wrap items-center gap-3 pt-1">
                         <BaseButton :href="route('store.shop')" size="lg">
-                            Shop Now
+                            Belanja Sekarang
                         </BaseButton>
                         <BaseButton href="#kategori" variant="secondary" size="lg">
                             Jelajahi Kategori
                         </BaseButton>
                     </div>
 
-                    <dl class="grid max-w-md grid-cols-3 gap-4 border-t border-neutral-200/80 pt-6">
+                    <dl class="grid max-w-md grid-cols-3 gap-6 border-t border-neutral-200/70 pt-7">
                         <div>
-                            <dt class="text-xs text-neutral-500">Produk Aktif</dt>
-                            <dd class="mt-0.5 text-lg font-semibold text-neutral-900">
+                            <dt class="text-xs font-medium text-neutral-400">Produk Aktif</dt>
+                            <dd class="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
                                 {{ storeStats.total_products || featuredProducts.length }}
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-neutral-500">Kategori</dt>
-                            <dd class="mt-0.5 text-lg font-semibold text-neutral-900">
+                            <dt class="text-xs font-medium text-neutral-400">Kategori</dt>
+                            <dd class="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
                                 {{ storeStats.total_categories || categories.length }}
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-neutral-500">Cabang Toko</dt>
-                            <dd class="mt-0.5 text-lg font-semibold text-neutral-900">
+                            <dt class="text-xs font-medium text-neutral-400">Cabang Toko</dt>
+                            <dd class="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-neutral-900">
                                 {{ storeStats.total_branches || branches.length }}
                             </dd>
                         </div>
@@ -122,24 +115,20 @@ const productLabel = (product) => {
 
                 <div class="lg:col-span-6">
                     <div
-                        class="animate-enter-hero overflow-hidden rounded-2xl border border-neutral-200/90 bg-white p-2.5 shadow-sm"
+                        class="animate-enter-hero group overflow-hidden rounded-3xl border border-neutral-200/80 bg-stone-50 p-2"
                         style="--enter-delay: 90ms"
                     >
-                        <div class="overflow-hidden rounded-xl bg-stone-100">
+                        <div class="overflow-hidden rounded-2xl bg-stone-100">
                             <img
-                                src="/images/store/hero-online-shopping.jpg"
-                                alt="Ilustrasi 3D tas belanja dan troli Online Shopping TokoKita"
-                                width="735"
-                                height="684"
+                                src="/images/store/hero-sembako.jpg"
+                                alt="Paket kebutuhan harian dan sembako pilihan TokoKita"
+                                width="1000"
+                                height="1000"
                                 loading="eager"
                                 fetchpriority="high"
                                 decoding="async"
-                                class="aspect-[735/684] w-full object-cover"
+                                class="aspect-square w-full object-cover transition duration-700 ease-out group-hover:scale-[1.02]"
                             />
-                        </div>
-                        <div class="flex items-center justify-between px-3 py-3 text-xs text-neutral-500">
-                            <span class="font-medium text-neutral-800">Koleksi Terpilih &bull; Siap Tersedia</span>
-                            <span>Harga Transparan</span>
                         </div>
                     </div>
                 </div>
@@ -147,89 +136,91 @@ const productLabel = (product) => {
         </section>
 
         <!-- 2. SHOP BY CATEGORIES -->
-        <section id="kategori" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-            <div
-                class="animate-enter mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
-                style="--enter-delay: 110ms"
-            >
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
-                        Kurasi Departemen
-                    </p>
-                    <h2 class="mt-1 text-2xl font-semibold tracking-tight text-neutral-900">
-                        Shop by Categories
-                    </h2>
-                </div>
-                <Link
-                    :href="route('store.shop')"
-                    class="text-sm font-medium text-neutral-700 transition hover:text-neutral-900 hover:underline"
-                >
-                    Lihat Semua Produk &rarr;
-                </Link>
-            </div>
-
-            <BaseLoading v-if="isTransitioning" variant="skeleton" :rows="2" />
-
-            <EmptyState
-                v-else-if="categories.length === 0"
-                title="Kategori produk belum tersedia"
-                description="Kategori aktif yang ditambahkan oleh administrator akan ditampilkan secara otomatis di sini."
-            />
-
-            <div
-                v-else
-                class="enter-stagger-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pt-1 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:py-0 lg:grid-cols-4"
-                style="--stagger-base: 140ms"
-            >
-                <Link
-                    v-for="cat in categories"
-                    :key="cat.id_kategori"
-                    :href="route('store.shop', { kategori: cat.slug })"
-                    class="group flex w-64 shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-400 hover:shadow-sm sm:w-auto"
-                >
-                    <StoreMediaBox
-                        :src="cat.gambar_url"
-                        :alt="cat.nama_kategori"
-                        :label="cat.nama_kategori"
-                        variant="category"
-                        aspect-class="aspect-[4/3]"
-                    />
-                    <div class="flex flex-1 flex-col justify-between p-4">
-                        <div>
-                            <h3 class="text-sm font-semibold text-neutral-900 group-hover:underline">
-                                {{ cat.nama_kategori }}
-                            </h3>
-                            <p v-if="cat.deskripsi" class="mt-1 line-clamp-1 text-xs text-neutral-500">
-                                {{ cat.deskripsi }}
-                            </p>
-                        </div>
-                        <div class="mt-3 flex items-center justify-between border-t border-neutral-100 pt-2.5 text-xs text-neutral-500">
-                            <span>{{ cat.produk_count ?? 0 }} produk</span>
-                            <span class="font-medium text-neutral-800">&rarr;</span>
-                        </div>
-                    </div>
-                </Link>
-            </div>
-        </section>
-
-        <!-- 3. OUR BESTSELLERS -->
-        <section id="bestsellers" class="border-t border-neutral-200/80 bg-stone-50/70">
-            <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+        <section id="kategori" class="bg-stone-50/50">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                 <div
-                    class="animate-enter mb-8 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
-                    style="--enter-delay: 160ms"
+                    class="animate-enter mb-10 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    style="--enter-delay: 110ms"
                 >
                     <div>
-                        <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
-                            Produk Pilihan &amp; Terlaris
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                            Kurasi Departemen
                         </p>
-                        <h2 class="mt-1 text-2xl font-semibold tracking-tight text-neutral-900">
-                            Our Bestsellers
+                        <h2 class="mt-1.5 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+                            Kategori Pilihan
                         </h2>
                     </div>
                     <Link
                         :href="route('store.shop')"
-                        class="text-sm font-medium text-neutral-700 transition hover:text-neutral-900 hover:underline"
+                        class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900"
+                    >
+                        Lihat Semua Produk &rarr;
+                    </Link>
+                </div>
+
+                <BaseLoading v-if="isTransitioning" variant="skeleton" :rows="2" />
+
+                <EmptyState
+                    v-else-if="categories.length === 0"
+                    title="Kategori produk belum tersedia"
+                    description="Kategori aktif yang ditambahkan oleh administrator akan ditampilkan secara otomatis di sini."
+                />
+
+                <div
+                    v-else
+                    class="enter-stagger-grid flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pt-1 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:py-0 lg:grid-cols-4"
+                    style="--stagger-base: 140ms"
+                >
+                    <Link
+                        v-for="cat in categories"
+                        :key="cat.id_kategori"
+                        :href="route('store.shop', { kategori: cat.slug })"
+                        class="group flex w-64 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition duration-300 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md sm:w-auto"
+                    >
+                        <StoreMediaBox
+                            :src="cat.gambar_url"
+                            :alt="cat.nama_kategori"
+                            :label="cat.nama_kategori"
+                            variant="category"
+                            aspect-class="aspect-[4/3]"
+                        />
+                        <div class="flex flex-1 flex-col justify-between p-5">
+                            <div>
+                                <h3 class="text-sm font-semibold text-neutral-900 transition group-hover:text-neutral-700">
+                                    {{ cat.nama_kategori }}
+                                </h3>
+                                <p v-if="cat.deskripsi" class="mt-1 line-clamp-1 text-xs text-neutral-500">
+                                    {{ cat.deskripsi }}
+                                </p>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3 text-xs text-neutral-500">
+                                <span>{{ cat.produk_count ?? 0 }} produk</span>
+                                <span class="font-medium text-neutral-900 transition-transform duration-200 group-hover:translate-x-0.5">&rarr;</span>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. OUR BESTSELLERS -->
+        <section id="bestsellers" class="border-t border-neutral-200/70 bg-white">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+                <div
+                    class="animate-enter mb-10 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"
+                    style="--enter-delay: 160ms"
+                >
+                    <div>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                            Produk Pilihan &amp; Terlaris
+                        </p>
+                        <h2 class="mt-1.5 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+                            Produk Unggulan
+                        </h2>
+                    </div>
+                    <Link
+                        :href="route('store.shop')"
+                        class="text-sm font-medium text-neutral-600 transition hover:text-neutral-900"
                     >
                         Jelajahi Katalog Lengkap &rarr;
                     </Link>
@@ -251,13 +242,13 @@ const productLabel = (product) => {
 
                 <div
                     v-else
-                    class="enter-stagger-grid grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-4"
+                    class="enter-stagger-grid grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4"
                     style="--stagger-base: 185ms"
                 >
                     <article
                         v-for="product in featuredProducts"
                         :key="product.id_produk"
-                        class="group flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300 hover:shadow-sm"
+                        class="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition duration-300 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
                     >
                         <Link :href="route('store.product', product.slug)" class="relative block">
                             <StoreMediaBox
@@ -273,27 +264,27 @@ const productLabel = (product) => {
                             </div>
                         </Link>
 
-                        <div class="flex flex-1 flex-col justify-between p-4">
+                        <div class="flex flex-1 flex-col justify-between p-4 sm:p-5">
                             <div>
                                 <p class="text-[11px] font-medium uppercase tracking-wider text-neutral-400">
                                     {{ product.kategori?.nama_kategori ?? 'Umum' }}
                                 </p>
                                 <Link
                                     :href="route('store.product', product.slug)"
-                                    class="mt-1 block line-clamp-2 text-sm font-semibold text-neutral-900 transition hover:underline"
+                                    class="mt-1.5 block line-clamp-2 text-sm font-semibold text-neutral-900 transition hover:text-neutral-700"
                                 >
                                     {{ product.nama_produk }}
                                 </Link>
                             </div>
 
-                            <div class="mt-4 space-y-3">
+                            <div class="mt-4 space-y-3.5">
                                 <div class="flex items-baseline justify-between gap-2">
-                                    <span class="text-base font-bold tracking-tight text-neutral-900">
+                                    <span class="text-base font-bold tabular-nums tracking-tight text-neutral-900">
                                         {{ formatCurrency(product.harga) }}
                                     </span>
                                     <span
                                         class="text-xs font-medium"
-                                        :class="product.stok > 0 ? 'text-neutral-500' : 'text-red-600'"
+                                        :class="product.stok > 0 ? 'text-neutral-400' : 'text-red-600'"
                                     >
                                         {{ product.stok > 0 ? `Stok ${product.stok}` : 'Habis' }}
                                     </span>
@@ -315,61 +306,63 @@ const productLabel = (product) => {
         </section>
 
         <!-- 4. PROMOTION SECTION -->
-        <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-            <div
-                class="animate-enter grid grid-cols-1 overflow-hidden rounded-2xl border border-neutral-200 bg-stone-50 lg:grid-cols-12"
-                style="--enter-delay: 200ms"
-            >
-                <div class="lg:col-span-6">
-                    <img
-                        src="/images/store/promo-editorial.webp"
-                        alt="Penataan paket kebutuhan pokok dan rumah tangga hemat di TokoKita"
-                        width="1000"
-                        height="747"
-                        loading="lazy"
-                        decoding="async"
-                        class="h-full max-h-[420px] w-full object-cover"
-                    />
-                </div>
-
-                <div class="flex flex-col justify-center space-y-5 p-7 sm:p-10 lg:col-span-6 lg:p-14">
-                    <div>
-                        <BaseBadge variant="success">Penawaran Hemat Toko</BaseBadge>
+        <section class="border-t border-neutral-200/70 bg-stone-50/50">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+                <div
+                    class="animate-enter grid grid-cols-1 overflow-hidden rounded-3xl border border-neutral-200/80 bg-white lg:grid-cols-12"
+                    style="--enter-delay: 200ms"
+                >
+                    <div class="overflow-hidden bg-stone-100 lg:col-span-6">
+                        <img
+                            src="/images/store/promo-minimalist.jpg"
+                            alt="Paket kebutuhan rumah tangga dan harian pilihan TokoKita"
+                            width="1200"
+                            height="900"
+                            loading="lazy"
+                            decoding="async"
+                            class="h-full max-h-[440px] w-full object-cover"
+                        />
                     </div>
-                    <h2 class="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
-                        Belanja Kebutuhan Rutin Lebih Cermat &amp; Terencana.
-                    </h2>
-                    <p class="text-sm leading-relaxed text-neutral-600">
-                        Manfaatkan penawaran paket hemat mingguan dan harga transparan langsung dari katalog resmi kami. Pantau stok produk pilihan sebelum berkunjung ke cabang terdekat.
-                    </p>
-                    <ul class="space-y-1.5 text-xs text-neutral-600">
-                        <li class="flex items-center gap-2">
-                            <span class="h-1.5 w-1.5 rounded-full bg-neutral-900" aria-hidden="true" />
-                            <span>Harga resmi terstandar di seluruh cabang</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <span class="h-1.5 w-1.5 rounded-full bg-neutral-900" aria-hidden="true" />
-                            <span>Pembaruan stok dan ketersediaan secara langsung</span>
-                        </li>
-                    </ul>
-                    <div class="pt-1">
-                        <BaseButton :href="route('store.shop')" size="lg">
-                            Belanja Sekarang &rarr;
-                        </BaseButton>
+
+                    <div class="flex flex-col justify-center space-y-5 p-8 sm:p-12 lg:col-span-6 lg:p-14">
+                        <div>
+                            <BaseBadge variant="success">Penawaran Hemat Toko</BaseBadge>
+                        </div>
+                        <h2 class="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+                            Belanja Kebutuhan Rutin Lebih Cermat &amp; Terencana.
+                        </h2>
+                        <p class="text-sm leading-relaxed text-neutral-500">
+                            Manfaatkan harga transparan langsung dari katalog resmi kami. Periksa ketersediaan stok produk pilihan sebelum berkunjung ke cabang terdekat.
+                        </p>
+                        <ul class="space-y-2 text-xs text-neutral-600">
+                            <li class="flex items-center gap-2.5">
+                                <span class="h-1.5 w-1.5 rounded-full bg-neutral-900" aria-hidden="true" />
+                                <span>Harga resmi terstandar di seluruh cabang</span>
+                            </li>
+                            <li class="flex items-center gap-2.5">
+                                <span class="h-1.5 w-1.5 rounded-full bg-neutral-900" aria-hidden="true" />
+                                <span>Pembaruan stok dan ketersediaan secara langsung</span>
+                            </li>
+                        </ul>
+                        <div class="pt-2">
+                            <BaseButton :href="route('store.shop')" size="lg">
+                                Belanja Sekarang &rarr;
+                            </BaseButton>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- 5. TENTANG KAMI -->
-        <section id="tentang-kami" class="border-t border-neutral-200 bg-white">
-            <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
-                <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
+        <section id="tentang-kami" class="border-t border-neutral-200/70 bg-white">
+            <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+                <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start">
                     <div class="animate-enter lg:col-span-4" style="--enter-delay: 210ms">
-                        <p class="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
                             Tentang Kami
                         </p>
-                        <h2 class="mt-1 text-2xl font-semibold tracking-tight text-neutral-900">
+                        <h2 class="mt-1.5 text-2xl font-semibold tracking-tight text-neutral-900">
                             Toko Harian dengan Pendekatan Minimalis &amp; Andal.
                         </h2>
                     </div>
@@ -378,21 +371,24 @@ const productLabel = (product) => {
                         class="enter-stagger-grid grid grid-cols-1 gap-5 sm:grid-cols-3 lg:col-span-8"
                         style="--stagger-base: 230ms"
                     >
-                        <div class="rounded-xl border border-neutral-200 bg-stone-50/50 p-5">
-                            <h3 class="text-sm font-semibold text-neutral-900">Kurasi Produk Harian</h3>
-                            <p class="mt-2 text-xs leading-relaxed text-neutral-600">
+                        <div class="rounded-2xl border border-neutral-200/80 bg-stone-50/50 p-6">
+                            <span class="text-xs font-semibold tabular-nums text-neutral-400">01</span>
+                            <h3 class="mt-2 text-sm font-semibold text-neutral-900">Kurasi Produk Harian</h3>
+                            <p class="mt-2 text-xs leading-relaxed text-neutral-500">
                                 Setiap barang dipilih untuk memenuhi kebutuhan pokok, minuman, hingga kebersihan rumah tangga dengan standar mutu terjaga.
                             </p>
                         </div>
-                        <div class="rounded-xl border border-neutral-200 bg-stone-50/50 p-5">
-                            <h3 class="text-sm font-semibold text-neutral-900">Layanan Kasir Cepat</h3>
-                            <p class="mt-2 text-xs leading-relaxed text-neutral-600">
-                                Sistem transaksi terintegrasi memastikan rincian harga, jumlah barang, dan pencatatan struk berjalan akurat di kasir.
+                        <div class="rounded-2xl border border-neutral-200/80 bg-stone-50/50 p-6">
+                            <span class="text-xs font-semibold tabular-nums text-neutral-400">02</span>
+                            <h3 class="mt-2 text-sm font-semibold text-neutral-900">Layanan Kasir Cepat</h3>
+                            <p class="mt-2 text-xs leading-relaxed text-neutral-500">
+                                Sistem transaksi terintegrasi dengan barcode &amp; QRIS memastikan pembayaran serta pencatatan struk berjalan akurat.
                             </p>
                         </div>
-                        <div class="rounded-xl border border-neutral-200 bg-stone-50/50 p-5">
-                            <h3 class="text-sm font-semibold text-neutral-900">Jaringan Gerai</h3>
-                            <p class="mt-2 text-xs leading-relaxed text-neutral-600">
+                        <div class="rounded-2xl border border-neutral-200/80 bg-stone-50/50 p-6">
+                            <span class="text-xs font-semibold tabular-nums text-neutral-400">03</span>
+                            <h3 class="mt-2 text-sm font-semibold text-neutral-900">Jaringan Gerai</h3>
+                            <p class="mt-2 text-xs leading-relaxed text-neutral-500">
                                 Didukung oleh {{ branches.length }} gerai terdaftar dengan katalog harga yang seragam dan mudah diperiksa kapan saja.
                             </p>
                         </div>
@@ -402,4 +398,3 @@ const productLabel = (product) => {
         </section>
     </StoreLayout>
 </template>
-

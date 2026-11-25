@@ -94,9 +94,12 @@ const logout = () => {
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2.5">
-                    <BaseButton :href="route('store.shop')" variant="primary" size="sm">
-                        &larr; Belanja Produk Baru
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <BaseButton :href="route('pelanggan.order.create')" variant="emerald" size="sm">
+                        + Beli Barang &amp; Upload Bukti
+                    </BaseButton>
+                    <BaseButton :href="route('store.shop')" variant="secondary" size="sm">
+                        &larr; Katalog Produk
                     </BaseButton>
                 </div>
             </div>
@@ -238,6 +241,7 @@ const logout = () => {
                                 <th class="px-5 py-3 font-semibold uppercase tracking-wider">Cabang</th>
                                 <th class="px-5 py-3 font-semibold uppercase tracking-wider">Kasir</th>
                                 <th class="px-5 py-3 font-semibold uppercase tracking-wider">Pembayaran</th>
+                                <th class="px-5 py-3 font-semibold uppercase tracking-wider">Status</th>
                                 <th class="px-5 py-3 font-semibold uppercase tracking-wider text-right">Total Belanja</th>
                                 <th class="px-5 py-3 font-semibold uppercase tracking-wider text-right">Aksi</th>
                             </tr>
@@ -261,10 +265,40 @@ const logout = () => {
                                     {{ tx.nama_kasir || tx.user?.name || '-' }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-3">
-                                    <BaseBadge variant="neutral">{{ tx.metode_pembayaran || 'Tunai' }}</BaseBadge>
+                                    <BaseBadge variant="neutral">{{ String(tx.metode_pembayaran || 'Tunai').toUpperCase() }}</BaseBadge>
+                                    <a
+                                        v-if="tx.bukti_pembayaran_url"
+                                        :href="tx.bukti_pembayaran_url"
+                                        target="_blank"
+                                        class="mt-1 block text-[11px] font-medium text-sky-700 hover:underline"
+                                    >
+                                        Lihat Bukti
+                                    </a>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-3">
+                                    <BaseBadge
+                                        :variant="
+                                            tx.status === 'menunggu_verifikasi'
+                                                ? 'warning'
+                                                : tx.status === 'dibatalkan'
+                                                  ? 'danger'
+                                                  : 'success'
+                                        "
+                                    >
+                                        {{
+                                            tx.status === 'menunggu_verifikasi'
+                                                ? 'Menunggu Verifikasi'
+                                                : tx.status === 'dibatalkan'
+                                                  ? 'Ditolak / Batal'
+                                                  : 'Selesai'
+                                        }}
+                                    </BaseBadge>
+                                    <p v-if="tx.catatan_verifikasi" class="mt-1 max-w-[180px] truncate text-[10px] text-neutral-500">
+                                        {{ tx.catatan_verifikasi }}
+                                    </p>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-3 text-right font-semibold text-neutral-900">
-                                    {{ formatCurrency(tx.total) }}
+                                    {{ formatCurrency(tx.total_belanja ?? tx.total ?? 0) }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-3 text-right">
                                     <a

@@ -163,6 +163,86 @@ class LaporanService
         ];
     }
 
+    /**
+     * Laporan operasional kasir untuk dicetak / disimpan ke PDF.
+     * Akun Kasir selalu dibatasi hanya pada transaksi yang diproses oleh dirinya sendiri.
+     *
+     * @return array<string, mixed>
+     */
+    public function getCashierOperationalReport(
+        User $actor,
+        ?string $startDate,
+        ?string $endDate,
+        ?int $cabangId = null,
+        ?string $status = null,
+        ?string $metode = null,
+        ?int $kasirId = null,
+        ?string $search = null,
+        ?int $pelangganId = null,
+    ): array {
+        $scopedKasirId = $actor->isAdmin() ? $kasirId : $actor->id;
+
+        $baseQuery = $this->buildTransactionBaseQuery(
+            $startDate,
+            $endDate,
+            $cabangId,
+            $pelangganId,
+            $status,
+            $scopedKasirId,
+            $search,
+        )->when($metode, fn (Builder $q) => $q->where('tbl_transaksi.metode_pembayaran', $metode));
+
+        $totalTransaksi = (clone $baseQuery)->count();
+        $nonCancelledQuery = $this->applyNonCancelledFilter(clone $baseQuery);
+
+        $nonCancelledAgg = (clone $nonCancelledQuery)
+            ->selectRaw('COUNT(*) as total_selesai, COALESCE(SUM(total_belanja), 0) as total_omzet, COALESCE(AVG(total_belanja), 0) as rata_rata')
+            ->first();
+
+        $matchingIdsSub = (clone $nonCancelledQuery)
+            ->select('tbl_transaksi.id_transaksi')
+            ->toBase();
+
+        $totalItemTerjual = (int) DB::table('tbl_detail_transaksi')
+            ->whereIn('id_transaksi', $matchingIdsSub)
+            ->sum('jumlah');
+
+        $paymentMethodRecap = (clone $nonCancelledQuery)
+            ->selectRaw('tbl_transaksi.metode_pembayaran as metode, COUNT(*) as jumlah_transaksi, COALESCE(SUM(total_belanja), 0) as total_nominal')
+            ->groupBy('tbl_transaksi.metode_pembayaran')
+            ->get()
+            ->groupBy(fn ($row) => filled($row->metode) ? (string) $row->metode : 'tidak_tercatat')
+            ->map(fn ($rows, string $metode) => [
+                'metode' => $metode,
+                'jumlah_transaksi' => (int) $rows->sum('jumlah_transaksi'),
+                'total_nominal' => (float) $rows->sum('total_nominal'),
+            ])
+            ->sortByDesc('total_nominal')
+            ->values()
+            ->all();
+
+        $transactions = (clone $baseQuery)
+            ->with(['pelanggan:id_pelanggan,nama_pelanggan,kota', 'cabang:id_cabang,nama_cabang', 'user:id,name,role'])
+            ->withCount('detail')
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id_transaksi')
+            ->limit(500)
+            ->get();
+
+        return [
+            'aggregates' => [
+                'total_transaksi' => $totalTransaksi,
+                'total_selesai' => (int) ($nonCancelledAgg->total_selesai ?? 0),
+                'total_dibatalkan' => max(0, $totalTransaksi - (int) ($nonCancelledAgg->total_selesai ?? 0)),
+                'total_omzet' => (float) ($nonCancelledAgg->total_omzet ?? 0),
+                'rata_rata' => round((float) ($nonCancelledAgg->rata_rata ?? 0), 2),
+                'total_item_terjual' => $totalItemTerjual,
+            ],
+            'paymentMethodRecap' => $paymentMethodRecap,
+            'transactions' => $transactions,
+        ];
+    }
+
     public function getTransactionExportQuery(
         ?string $startDate,
         ?string $endDate,
@@ -531,8 +611,10 @@ class LaporanService
     private function applyNonCancelledFilter(Builder $query): Builder
     {
         return $query->where(function (Builder $q) {
-            $q->where('status', '!=', Transaksi::STATUS_DIBATALKAN)
-                ->orWhereNull('status');
+            $q->whereNotIn('status', [
+                Transaksi::STATUS_DIBATALKAN,
+                Transaksi::STATUS_MENUNGGU_VERIFIKASI,
+            ])->orWhereNull('status');
         });
     }
 

@@ -643,4 +643,74 @@ class AdminDashboardAndReportsTest extends TestCase
         $this->assertStringContainsString("'=SUM(1+1) Pelanggan", $custCsv);
         $this->assertStringContainsString('140000.00', $custCsv);
     }
+
+    public function test_admin_can_download_transaction_report_pdf_for_all_cashiers_or_specific_cashier_and_kasir_is_forbidden(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $kasirA = User::factory()->kasir()->create(['name' => 'Kasir Satu']);
+        $kasirB = User::factory()->kasir()->create(['name' => 'Kasir Dua']);
+        $pelanggan = Pelanggan::factory()->create();
+
+        Transaksi::factory()->create([
+            'kode_transaksi' => 'TRX-PDF-ALL-1',
+            'tanggal' => '2026-11-10',
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirA->id,
+            'nama_kasir' => $kasirA->name,
+            'total_belanja' => 50000,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        Transaksi::factory()->create([
+            'kode_transaksi' => 'TRX-PDF-ALL-2',
+            'tanggal' => '2026-11-10',
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'user_id' => $kasirB->id,
+            'nama_kasir' => $kasirB->name,
+            'total_belanja' => 75000,
+            'status' => Transaksi::STATUS_SELESAI,
+        ]);
+
+        // Kasir tetap 403 pada endpoint laporan admin
+        $this->actingAs($kasirA)
+            ->get(route('laporan.transaksi.pdf'))
+            ->assertForbidden();
+
+        // Admin download PDF untuk semua kasir
+        $allResponse = $this->actingAs($admin)
+            ->get(route('laporan.transaksi.pdf', ['start_date' => '2026-11-10', 'end_date' => '2026-11-10']))
+            ->assertOk();
+
+        $this->assertStringContainsString('application/pdf', (string) $allResponse->headers->get('Content-Type'));
+        $this->assertStringContainsString('laporan-transaksi-semua-kasir-', (string) $allResponse->headers->get('Content-Disposition'));
+        $this->assertStringStartsWith('%PDF-', $allResponse->getContent());
+
+        // Admin download PDF untuk kasir tertentu
+        $singleResponse = $this->actingAs($admin)
+            ->get(route('laporan.transaksi.pdf', ['start_date' => '2026-11-10', 'end_date' => '2026-11-10', 'kasir' => $kasirB->id]))
+            ->assertOk();
+
+        $this->assertStringContainsString('application/pdf', (string) $singleResponse->headers->get('Content-Type'));
+        $this->assertStringContainsString('laporan-transaksi-kasir-dua-', (string) $singleResponse->headers->get('Content-Disposition'));
+        $this->assertStringStartsWith('%PDF-', $singleResponse->getContent());
+
+        // Admin download PDF untuk laporan penjualan, produk, dan pelanggan
+        foreach (['sales', 'products', 'customers'] as $type) {
+            $pdfRes = $this->actingAs($admin)
+                ->get(route('laporan.pdf', ['report' => $type, 'start_date' => '2026-11-10', 'end_date' => '2026-11-10']))
+                ->assertOk();
+
+            $this->assertStringContainsString('application/pdf', (string) $pdfRes->headers->get('Content-Type'));
+            $this->assertStringStartsWith('%PDF-', $pdfRes->getContent());
+        }
+
+        // Dropdown filter kasir di laporan transaksi hanya berisi role kasir (tidak ada admin/pelanggan)
+        $this->actingAs($admin)
+            ->get(route('laporan.transaksi'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Laporan/Transaksi')
+                ->where('cashiers', fn ($cashiers) => collect($cashiers)->every(fn ($u) => $u['role'] === 'kasir'))
+            );
+    }
 }

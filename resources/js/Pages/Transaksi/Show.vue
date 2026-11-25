@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import CashierLayout from '@/Layouts/CashierLayout.vue';
 import BaseBadge from '@/Components/UI/BaseBadge.vue';
@@ -11,7 +11,7 @@ import { usePermissions } from '@/Composables/usePermissions';
 import { useCurrency } from '@/Composables/useCurrency';
 import { useDate } from '@/Composables/useDate';
 
-defineProps({
+const props = defineProps({
     transaction: {
         type: Object,
         required: true,
@@ -28,9 +28,28 @@ const { formatDate } = useDate();
 
 const paperSize = ref('58mm');
 const paperOptions = ['40mm', '58mm', '80mm'];
+const verifying = ref(false);
+const rejectNote = ref('');
 
 const printNota = () => {
     window.print();
+};
+
+const verifyPayment = (decision) => {
+    verifying.value = true;
+    router.patch(
+        route('transaksi.verify', props.transaction.id_transaksi),
+        {
+            decision,
+            catatan_verifikasi: rejectNote.value || null,
+        },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                verifying.value = false;
+            },
+        },
+    );
 };
 </script>
 
@@ -90,8 +109,20 @@ const printNota = () => {
                                 </h2>
                             </div>
                             <div class="text-right">
-                                <BaseBadge :variant="transaction.status === 'dibatalkan' ? 'danger' : 'success'">
-                                    {{ transaction.status ?? 'selesai' }}
+                                <BaseBadge
+                                    :variant="
+                                        transaction.status === 'menunggu_verifikasi'
+                                            ? 'warning'
+                                            : transaction.status === 'dibatalkan'
+                                              ? 'danger'
+                                              : 'success'
+                                    "
+                                >
+                                    {{
+                                        transaction.status === 'menunggu_verifikasi'
+                                            ? 'Menunggu Verifikasi'
+                                            : transaction.status ?? 'selesai'
+                                    }}
                                 </BaseBadge>
                                 <p class="mt-1 text-xs text-neutral-500">{{ formatDate(transaction.tanggal) }}</p>
                             </div>
@@ -135,7 +166,21 @@ const printNota = () => {
                     <DetailTransaksiTable :details="transaction.detail ?? []" />
 
                     <div class="space-y-2.5 rounded-xl border border-neutral-200 bg-white px-6 py-4 shadow-sm">
-                        <div class="flex items-center justify-between">
+                        <template v-if="Number(transaction.pajak ?? 0) > 0">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-neutral-500">Subtotal Belanja</span>
+                                <span class="font-medium text-neutral-800">
+                                    {{ formatCurrency(transaction.subtotal ?? 0) }}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-neutral-500">PPN ({{ Number(transaction.ppn_rate || 11) }}%)</span>
+                                <span class="font-medium text-neutral-800">
+                                    {{ formatCurrency(transaction.pajak ?? 0) }}
+                                </span>
+                            </div>
+                        </template>
+                        <div class="flex items-center justify-between" :class="{ 'border-t border-neutral-100 pt-2.5': Number(transaction.pajak ?? 0) > 0 }">
                             <span class="text-sm font-medium text-neutral-600">Total Belanja Tercatat</span>
                             <span class="text-2xl font-bold text-neutral-900">
                                 {{ formatCurrency(transaction.total_belanja) }}
@@ -151,6 +196,82 @@ const printNota = () => {
                                 <span class="font-semibold text-emerald-700">{{ formatCurrency(transaction.kembalian ?? 0) }}</span>
                             </div>
                         </template>
+                    </div>
+
+                    <!-- Bukti Pembayaran & Verifikasi (Untuk Pembelian Pelanggan) -->
+                    <div
+                        v-if="transaction.bukti_pembayaran_url || transaction.status === 'menunggu_verifikasi'"
+                        class="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
+                    >
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+                            <div>
+                                <h3 class="text-sm font-semibold text-neutral-900">Bukti Pembayaran Pelanggan</h3>
+                                <p class="text-xs text-neutral-500">
+                                    Diunggah oleh pelanggan untuk diverifikasi oleh Kasir atau Admin.
+                                </p>
+                            </div>
+                            <a
+                                v-if="transaction.bukti_pembayaran_url"
+                                :href="transaction.bukti_pembayaran_url"
+                                target="_blank"
+                                class="text-xs font-semibold text-neutral-900 underline"
+                            >
+                                Buka Gambar Penuh
+                            </a>
+                        </div>
+
+                        <div v-if="transaction.bukti_pembayaran_url" class="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+                            <img
+                                :src="transaction.bukti_pembayaran_url"
+                                alt="Bukti Pembayaran Pelanggan"
+                                class="mx-auto max-h-72 rounded-lg object-contain"
+                            />
+                        </div>
+
+                        <div v-if="transaction.catatan_verifikasi" class="rounded-lg bg-neutral-50 px-3.5 py-2.5 text-xs text-neutral-700">
+                            <strong>Catatan Verifikasi:</strong> {{ transaction.catatan_verifikasi }}
+                            <span v-if="transaction.verifier?.name" class="text-neutral-500">
+                                (Oleh {{ transaction.verifier.name }})
+                            </span>
+                        </div>
+
+                        <div
+                            v-if="transaction.status === 'menunggu_verifikasi' && can.viewTransactions"
+                            class="space-y-3 border-t border-neutral-100 pt-3"
+                        >
+                            <div>
+                                <label for="reject_note" class="mb-1 block text-xs font-medium text-neutral-700">
+                                    Catatan Verifikasi (Opsional)
+                                </label>
+                                <input
+                                    id="reject_note"
+                                    v-model="rejectNote"
+                                    type="text"
+                                    placeholder="Contoh: Dana masuk ke rekening / Nominal tidak sesuai..."
+                                    class="block w-full rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                                />
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <BaseButton
+                                    type="button"
+                                    variant="emerald"
+                                    size="sm"
+                                    :loading="verifying"
+                                    @click="verifyPayment('approve')"
+                                >
+                                    Setujui Pembayaran
+                                </BaseButton>
+                                <BaseButton
+                                    type="button"
+                                    variant="danger"
+                                    size="sm"
+                                    :loading="verifying"
+                                    @click="verifyPayment('reject')"
+                                >
+                                    Tolak Pembayaran
+                                </BaseButton>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
